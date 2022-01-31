@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "anticaptcha": "^2.1.1",
+    "axios": "^0.25.0",
+    "fs": "^0.0.1-security",
+    "generate-password": "^1.7.0",
+    "readline": "^1.3.0",
+    "username-generator": "^1.1.0"
+  }
+}
