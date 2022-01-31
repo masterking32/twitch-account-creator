@@ -7,10 +7,10 @@ const readline = require("readline");
 
 const CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 const funcaptchaSignupPublicKey = 'E5554D43-23CC-1982-971D-6A2262A2CA24';
-const outFilePathAll = './results.txt';
-const outFilePathUsers = './users.txt';
-const outFilePathPass = './pass.txt';
-const outFilePathTokens = './tokens.txt';
+const outFilePathAll = './results/results.txt';
+const outFilePathUsers = './results/users.txt';
+const outFilePathPass = './results/pass.txt';
+const outFilePathTokens = './results/tokens.txt';
 
 const rl = readline.createInterface({
     input: process.stdin,
