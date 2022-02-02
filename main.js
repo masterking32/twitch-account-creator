@@ -22,7 +22,7 @@ const solveArkoseCaptcha = async () => {
         return await solveFunCaptcha(
             'https://www.twitch.tv/signup',
           funcaptchaSignupPublicKey,
-        ).then(token => token.replace('https://twitch-api.arkoselabs.com', 'https://client-api.arkoselabs.com'));
+        );
     } catch (e) {
         return await solveArkoseCaptcha();
     }
@@ -61,6 +61,7 @@ async function StartCreate(uname) {
     const email = await getEmail(credentials.username);
     console.log('Solving captcha');
     const captchaToken = await solveArkoseCaptcha();
+    // console.log(captchaToken);
     console.log('Generating payload');
     const payload = await generatePayload(credentials, email, captchaToken);
     console.log('Registering account');
@@ -139,7 +140,7 @@ async function saveResult(username, password, email, userid, token) {
 const getAccessToken = async cookies => {
     try {
         const headerCookies = convertCookieForRequestHeader(cookies);
-        const {headers} = await axios.get('https://id.twitch.tv/oauth2/authorize', {
+        const {headers, body} = await axios.get('https://id.twitch.tv/oauth2/authorize', {
             headers: {Cookie: headerCookies},
             params: {
                 client_id: CLIENT_ID,
@@ -150,7 +151,7 @@ const getAccessToken = async cookies => {
                 scope: ['chat_login', 'user_read', 'user_subscriptions', 'user_presence_friends_read'].join(' '),
             },
             maxRedirects: 0,
-            validateStatus: status => status === 302,
+            // validateStatus: status => status === 302,
         });
         const redirectURL = headers['location'];
         return extractAccessTokenFromURL(redirectURL);
