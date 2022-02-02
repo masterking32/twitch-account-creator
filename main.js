@@ -137,10 +137,15 @@ async function saveResult(username, password, email, userid, token) {
     });
 };
 
+
+/*
+@TODO:
+Account will be created but we have some issues with verifying accounts. (I will check it later)
+*/
 const getAccessToken = async cookies => {
     try {
         const headerCookies = convertCookieForRequestHeader(cookies);
-        const {headers, body} = await axios.get('https://id.twitch.tv/oauth2/authorize', {
+        const {headers} = await axios.get('https://id.twitch.tv/oauth2/authorize', {
             headers: {Cookie: headerCookies},
             params: {
                 client_id: CLIENT_ID,
