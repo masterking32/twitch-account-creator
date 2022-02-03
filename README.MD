@@ -1,4 +1,3 @@
-
 # A NodeJS Bot to create a Twitch account.
 
 It will create a new account and verify the account using an email address.
@@ -11,6 +10,12 @@ It will create a new account and verify the account using an email address.
 
 # Installation
 
- - Clone the repo and do `npm install`
- - Put your Anti-Captcha API key in `anti-captcha.js`
- - Run the project (`node main.js`). 
+- Clone the repo and do `npm install`
+- Put your Anti-Captcha API key in `anti-captcha.js`
+- Run the project (`node main.js`).
+
+We will store account details in `./results/results.txt`.
+
+If you need to verify your email for login or etc.
+
+You can go to [1SecMail.Com](https://www.1secmail.com), put your account email there, and check the received emails.

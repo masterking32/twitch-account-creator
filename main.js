@@ -1,6 +1,6 @@
 const fs = require('fs');
 const axios = require('axios');
-const {generateRandomCredentials, convertCookieForRequestHeader} = require('./utils');
+const {generateRandomCredentials} = require('./utils');
 const {getEmail, waitFirstMail} = require('./trash-mail');
 const {solveFunCaptcha} = require('./anti-captcha');
 const readline = require("readline");
@@ -44,13 +44,13 @@ const registerAccount = async payload => {
     try {
         const response = await axios.post('https://passport.twitch.tv/register', payload);
         const headers = response.headers;
-        return headers['set-cookie'];
+        let output = {};
+        output.userid = response.data.userID;
+        output.access_token = response.data.access_token;
+        return output;
     } catch (e) {
-        if(e.response.data.error == 'Please complete the CAPTCHA correctly.')
-        {
-            console.log("Invalid Captcha");
-            return false;
-        }
+        console.log(e.response.data.error);
+        return false;
     }
 };
 
@@ -61,25 +61,22 @@ async function StartCreate(uname) {
     const email = await getEmail(credentials.username);
     console.log('Solving captcha');
     const captchaToken = await solveArkoseCaptcha();
-    // console.log(captchaToken);
     console.log('Generating payload');
     const payload = await generatePayload(credentials, email, captchaToken);
     console.log('Registering account');
-    const cookies = await registerAccount(payload);
-    if(cookies === false)
+    const registerData = await registerAccount(payload);
+    if(registerData === false)
     {
-        return await StartCreate(uname);
+        // return await StartCreate(uname);
+        return false;
     }
-    console.log('Getting access token');
-    const accessToken = await getAccessToken(cookies);
+    
+    const userId = registerData.userid;
+    const accessToken = registerData.access_token;
     console.log('Wait verification mail');
     const verifyCode = await waitFirstMail(credentials.username);
-    console.log('Getting user id');
-    const userId = await getUserId(accessToken);
-    console.log(userId);
-    console.log('Verify email');
+    console.log('Verify email, Verify Code:' + verifyCode);
     await verifyEmail(accessToken, userId, email, verifyCode);
-    console.log(accessToken);
     console.log('Done');
     await saveResult(credentials.username, credentials.password, email, userId, accessToken);
 }
@@ -137,43 +134,6 @@ async function saveResult(username, password, email, userid, token) {
     });
 };
 
-
-/*
-@TODO:
-Account will be created but we have some issues with verifying accounts. (I will check it later)
-*/
-const getAccessToken = async cookies => {
-    try {
-        const headerCookies = convertCookieForRequestHeader(cookies);
-        const {headers} = await axios.get('https://id.twitch.tv/oauth2/authorize', {
-            headers: {Cookie: headerCookies},
-            params: {
-                client_id: CLIENT_ID,
-                lang: 'en',
-                login_type: 'login',
-                redirect_uri: 'https://www.twitch.tv/passport-callback',
-                response_type: 'token',
-                scope: ['chat_login', 'user_read', 'user_subscriptions', 'user_presence_friends_read'].join(' '),
-            },
-            maxRedirects: 0,
-            // validateStatus: status => status === 302,
-        });
-        const redirectURL = headers['location'];
-        return extractAccessTokenFromURL(redirectURL);
-    } catch (e) {
-        console.debug(e);
-        await sleep(1000);
-        return await getAccessToken();
-    }
-};
-
-
-async function sleep(ms) {
-	return new Promise((res) => setTimeout(res, ms));
-}
-
-const extractAccessTokenFromURL = url => url.split('=')[1].split('&')[0];
-
 module.exports.validateAuthToken = async authToken => {
     const {status} = await axios.get('https://id.twitch.tv/oauth2/validate', {
         headers: {
@@ -185,7 +145,7 @@ module.exports.validateAuthToken = async authToken => {
 };
 
 const verifyEmail = async (accessToken, userId, email, code) => {
-    const {request,error} = await sendGQLRequest(accessToken, `
+    const response = await sendGQLRequest(accessToken, `
         mutation VerifyEmail {
           validateVerificationCode(input: {address: "${email}", code: "${code}", key: "${userId}"}) {
             request {
@@ -196,36 +156,17 @@ const verifyEmail = async (accessToken, userId, email, code) => {
             }
           }
         }
-    `)
-        .then(res => res.data)
-        .then(body => body.data.validateVerificationCode);
-
-    if (error && error.code !== 'UNKNOWN') {
-        if (error.code === 'INCORRECT_CODE')
-            throw new Error('Invalid email code for verify');
-        if (error.code === 'TOO_MANY_FAILED_ATTEMPTS')
-            throw new Error('Too many failed attempts to verify code');
-
-        console.error(error);
-        throw new Error('Failed to verify email');
-    }
-
-    if (request.status === 'PENDING')
-        throw new Error('Email not verified. Status is "pending"');
-    if (request.status === 'REJECTED')
-        throw new Error('Verify request is rejected');
-};
-
-const getUserId = accessToken => {
-    return sendGQLRequest(accessToken, `
-        query GetMyId {
-          currentUser {
-            id
-          }
+    `);
+    const response_data = response.data;
+    if(response_data.data.validateVerificationCode !== undefined) {
+        const validateVerificationCode = response_data.data.validateVerificationCode;
+        if (validateVerificationCode.request.status == 'VERIFIED') {
+            console.log("Account verified");
+        } else {
+            console.log("Account not verified");
         }
-    `)
-        .then(res => res.data)
-        .then(body => body.data.currentUser.id);
+    }
+    
 };
 
 const sendGQLRequest = (accessToken, query) => {
