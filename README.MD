@@ -14,8 +14,14 @@ It will create a new account and verify the account using an email address.
 - Put your Anti-Captcha API key in `anti-captcha.js`
 - Run the project (`node main.js`).
 
+---
+
 We will store account details in `./results/results.txt`.
 
 If you need to verify your email for login or etc.
 
 You can go to [1SecMail.Com](https://www.1secmail.com), put your account email there, and check the received emails.
+
+## Programmers
+
+Author : [Amin.MasterkinG](https://masterking32.com) | [Github](https://github.com/masterking32)
