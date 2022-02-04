@@ -14,6 +14,11 @@ It will create a new account and verify the account using an email address.
 - Put your Anti-Captcha API key in `anti-captcha.js`
 - Run the project (`node main.js`).
 
+
+# Tutorial and Test
+
+**[Youtube Video](https://www.youtube.com/watch?v=fC2KgnYoETw)**
+
 ---
 
 We will store account details in `./results/results.txt`.
