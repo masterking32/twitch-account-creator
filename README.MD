@@ -17,6 +17,11 @@ It will create a new account and verify the account using an email address.
 
 # Tutorial and Test
 
+<a href="https://www.youtube.com/watch?v=fC2KgnYoETw">
+  <img align="center" src="https://raw.githubusercontent.com/masterking32/twitch-account-creator/main/hqdefault.jpg" alt="Youtube Video" />
+</a>
+
+
 **[Youtube Video](https://www.youtube.com/watch?v=fC2KgnYoETw)**
 
 ---
