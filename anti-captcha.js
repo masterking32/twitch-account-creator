@@ -12,7 +12,8 @@ module.exports.solveFunCaptcha = async (url, key) => {
         websitePublicKey: key,
     });
     const response = await anticaptcha.getTaskResult(taskId, 9999, 5000);
-    response.solution.token = replaceAll(response.solution.token, 'funcaptcha.com', 'client-api.arkoselabs.com');
+    // response.solution.token = replaceAll(response.solution.token, 'funcaptcha.com', 'client-api.arkoselabs.com');
+    response.solution.token = replaceAll(response.solution.token, 'funcaptcha.com', 'twitch-api.arkoselabs.com');
     response.solution.token = response.solution.token.replace('|pk=','|lang=en|pk=');
     response.solution.token = replaceAll(response.solution.token, 'ap-southeast-1', 'eu-west-1');
     return response.solution.token;
