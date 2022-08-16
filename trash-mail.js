@@ -1,12 +1,13 @@
 const axios = require('axios');
+const mail_domain = 'dcctb.com';
 
 module.exports.getEmail = async login => {
-    const email = `${login}@yoggm.com`;
+    const email = `${login}@${mail_domain}`;
     return email;
 };
 
 module.exports.getAllMails = async username => {
-    const response = await axios.get(`https://www.1secmail.com/api/v1/?action=getMessages&login=${username}&domain=yoggm.com`, {});
+    const response = await axios.get(`https://www.1secmail.com/api/v1/?action=getMessages&login=${username}&domain=${mail_domain}`, {});
     var output_array = JSON.parse(JSON.stringify(response.data));
     return response.data;
 };
