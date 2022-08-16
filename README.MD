@@ -6,11 +6,11 @@ It will create a new account and verify the account using an email address.
 
 ## Requirements:
 
-**[Anti-Captcha to resolve Twitch FunCaptcha](https://anti-captcha.com)**. (Required Balance)
+**[Anti-Captcha to resolve Twitch FunCaptcha](http://getcaptchasolution.com/svlzmusv0h)**. (Required Balance)
 
 **OR**
 
-**[2Captcha to resolve Twitch FunCaptcha](https://2captcha.com)**. (Required Balance)
+**[2Captcha to resolve Twitch FunCaptcha](https://2captcha.com?from=8210547)**. (Required Balance)
 
 # Installation
 
