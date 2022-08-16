@@ -45,7 +45,7 @@ const API_2Captcha_Validate = async (requestID) => {
 };
 
 const API_2Captcha_Request = async () => {
-    let URL = "http://2captcha.com/in.php?key=" + Token_2CAPTCHA + "&method=funcaptcha&publickey=" + funcaptchaSignupPublicKey + "&surl=https://twitch-api.arkoselabs.com&pageurl=https://www.twitch.tv/signup&json=1";
+    let URL = "http://2captcha.com/in.php?key=" + Token_2CAPTCHA + "&method=funcaptcha&publickey=" + funcaptchaSignupPublicKey + "&surl=https://twitch-api.arkoselabs.com&pageurl=https://www.twitch.tv/signup&soft_id=3432&json=1";
     response = await axios.get(URL);
     try{
         if(response.data.status == 1) {
