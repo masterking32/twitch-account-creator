@@ -1,11 +1,9 @@
 const fs = require('fs');
 const axios = require('axios');
-const {generateRandomCredentials} = require('./utils');
+const {generateRandomCredentials, generateUsername} = require('./utils');
 const {getEmail, waitFirstMail} = require('./trash-mail');
 const readline = require("readline");
 const ac = require("@antiadmin/anticaptchaofficial");
-const { isFunction } = require('util');
-
 // Get API Key from Anti-Captcha.com or 2Captcha.com.
 const Anti_Captcha_KEY = 'YOUR anti-captcha.com API KEY';
 const Token_2CAPTCHA = 'YOUR 2captcha.com API KEY';
@@ -16,6 +14,8 @@ const outFilePathAll = './results/results.txt';
 const outFilePathUsers = './results/users.txt';
 const outFilePathPass = './results/pass.txt';
 const outFilePathTokens = './results/tokens.txt';
+
+const RandomUsername = false; // If you want to make new accounts with random usernames, change this to true.
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -175,9 +175,15 @@ async function CreateNewAccount(uname)
 }
 
 GettingUsername = async () => {
-    rl.question("Username?\n", function(uname) {
-        CreateNewAccount(uname)
-    });
+    if(RandomUsername == true) {
+        let uname = generateUsername();
+        console.log('Username: ' + uname);
+        await CreateNewAccount(uname);
+    } else {
+        rl.question("Username?\n", function(uname) {
+            CreateNewAccount(uname)
+        });
+    }
 };
 
 GettingUsername();
