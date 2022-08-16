@@ -8,10 +8,14 @@ It will create a new account and verify the account using an email address.
 
 **[Anti-Captcha to resolve Twitch FunCaptcha](https://anti-captcha.com)**. (Required Balance)
 
+**OR**
+
+**[2Captcha to resolve Twitch FunCaptcha](https://2captcha.com)**. (Required Balance)
+
 # Installation
 
 - Clone the repo and do `npm install`
-- Put your Anti-Captcha API key in `anti-captcha.js`
+- Put your Anti-Captcha/2Captcha API key in `main.js`
 - Run the project (`node main.js`).
 
 
