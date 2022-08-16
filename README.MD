@@ -6,6 +6,8 @@ It will create a new account and verify the account using an email address.
 
 ## Requirements:
 
+Get an API key from:
+
 **[Anti-Captcha to resolve Twitch FunCaptcha](http://getcaptchasolution.com/svlzmusv0h)**. (Required Balance)
 
 **OR**
