@@ -1,8 +1,15 @@
 # A NodeJS Bot to create a Twitch account.
 
+
 It will create a new account and verify the account using an email address.
 
 *Do not abuse this project, this project is made for testing only, and you cannot use it according to Twitch rules.*
+
+<p align="center">
+  <a href="https://discord.gg/ydDk9xe" target="_blank">
+    <img align="center" src="https://dcbadge.vercel.app/api/server/ydDk9xe" alt="MasterkinG32's Discord Server" />
+  </a>
+</p>
 
 ## Requirements:
 
