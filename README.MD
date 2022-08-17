@@ -1,34 +1,40 @@
+[![GitHub stars](https://img.shields.io/github/stars/masterking32/twitch-account-creator.svg)](https://github.com/masterking32/twitch-account-creator/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/masterking32/twitch-account-creator.svg)](https://github.com/masterking32/twitch-account-creator/issues)
+[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
+
 # A NodeJS Bot to create a Twitch account.
 
+✔️ It will create a new account and verify the account using an email address. ✔️
 
-It will create a new account and verify the account using an email address.
+*❌ Do not abuse this project, this project is made for testing only, and you cannot use it according to Twitch rules. ❌*
 
-*Do not abuse this project, this project is made for testing only, and you cannot use it according to Twitch rules.*
+**⭐ If you liked the project, feel free to give it a shining star. ⭐**
 
+<hr>
 <p align="center">
   <a href="https://discord.gg/ydDk9xe" target="_blank">
     <img align="center" src="https://dcbadge.vercel.app/api/server/ydDk9xe" alt="MasterkinG32's Discord Server" />
   </a>
 </p>
 
-## Requirements:
+## 🛠️ Requirements:
 
-Get an API key from:
+✅ Get an API key from:
 
-**[Anti-Captcha to resolve Twitch FunCaptcha](http://getcaptchasolution.com/svlzmusv0h)**. (Required Balance)
+**🟢 [Anti-Captcha to resolve Twitch FunCaptcha](http://getcaptchasolution.com/svlzmusv0h)**. (Required Balance)
 
-**OR**
+**🔴  OR  🔴**
 
-**[2Captcha to resolve Twitch FunCaptcha](https://2captcha.com?from=8210547)**. (Required Balance)
+**🟢 [2Captcha to resolve Twitch FunCaptcha](https://2captcha.com?from=8210547)**. (Required Balance)
 
-# Installation
+## 💻 Installation
 
 - Clone the repo and do `npm install`
-- Put your Anti-Captcha/2Captcha API key in `main.js`
+- Put your `Anti-Captcha` **or** `2Captcha` API key in `main.js`
 - Run the project (`node main.js`).
 
 
-# Tutorial and Test
+## 📽️ Tutorial and Test
 
 <a href="https://www.youtube.com/watch?v=fC2KgnYoETw">
   <img align="center" src="https://raw.githubusercontent.com/masterking32/twitch-account-creator/main/hqdefault.jpg" alt="Youtube Video" />
