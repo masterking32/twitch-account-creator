@@ -21,11 +21,11 @@
 
 ✅ Get an API key from:
 
-**🟢 [Anti-Captcha to resolve Twitch FunCaptcha](http://getcaptchasolution.com/svlzmusv0h)**. (Required Balance)
+**🟢 [2Captcha to resolve Twitch FunCaptcha](https://2captcha.com?from=8210547)**. (Required Balance/Recommended)
 
 **🔴  OR  🔴**
 
-**🟢 [2Captcha to resolve Twitch FunCaptcha](https://2captcha.com?from=8210547)**. (Required Balance)
+**🟢 [Anti-Captcha to resolve Twitch FunCaptcha](http://getcaptchasolution.com/svlzmusv0h)**. (Required Balance)
 
 ## 💻 Installation
 
