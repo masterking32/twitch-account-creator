@@ -5,8 +5,8 @@ const {getEmail, waitFirstMail} = require('./trash-mail');
 const readline = require("readline");
 const ac = require("@antiadmin/anticaptchaofficial");
 // Get API Key from Anti-Captcha.com or 2Captcha.com.
-const Anti_Captcha_KEY = 'YOUR anti-captcha.com API KEY';
 const Token_2CAPTCHA = 'YOUR 2captcha.com API KEY'; // RECOMMENDED / BETTER SOLVING
+const Anti_Captcha_KEY = 'YOUR anti-captcha.com API KEY';
 
 const CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 const funcaptchaSignupPublicKey = 'E5554D43-23CC-1982-971D-6A2262A2CA24';
