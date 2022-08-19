@@ -6,7 +6,7 @@ function randomIntFromInterval(min, max) {
 
 module.exports.generateId = size => Math.random().toString(36).substr(2, size);
 module.exports.generatePassword = () => PasswordGenerator.generate() + '_MK32';
-module.exports.generateUsername = () => UsernameGenerator.generateUsername().replace(/-/g, '') + this.generateId(5);
+module.exports.generateUsername = () => UsernameGenerator.generateUsername().replace(/-/g, '') + this.generateId(3);
 module.exports.generateBirthday = () => ({
     day: randomIntFromInterval(1, 30),
     month: randomIntFromInterval(1, 12),
