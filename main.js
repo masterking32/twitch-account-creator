@@ -4,13 +4,7 @@ const {generateRandomCredentials, generateUsername} = require('./utils');
 const {getEmail, waitFirstMail} = require('./trash-mail');
 const readline = require("readline");
 const ac = require("@antiadmin/anticaptchaofficial");
-
-
-// Get API Key from Anti-Captcha.com or 2Captcha.com.
-const API_KEY_2CAPTCHA = 'YOUR 2captcha.com API KEY'; // RECOMMENDED / BETTER SOLVING
-const API_KEY_AntiCaptcha = 'YOUR anti-captcha.com API KEY';
-const RandomUsername = false; // If you want to make new accounts with random usernames, change this to true.
-const UseProxy = true; // If you have proxy list, you can use it. (Put your proxy list in the proxies.txt file)
+var config = require('./config');
 
 const CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 const funcaptchaSignupPublicKey = 'E5554D43-23CC-1982-971D-6A2262A2CA24';
@@ -19,15 +13,13 @@ const outFilePathUsers = './results/users.txt';
 const outFilePathPass = './results/pass.txt';
 const outFilePathTokens = './results/tokens.txt';
 
-
-
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-if(API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && API_KEY_AntiCaptcha != '') {
-    ac.setAPIKey(API_KEY_AntiCaptcha);
+if(config.API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && config.API_KEY_AntiCaptcha != '') {
+    ac.setAPIKey(config.API_KEY_AntiCaptcha);
     ac.settings.funcaptchaApiJSSubdomain = 'twitch-api.arkoselabs.com';
     ac.setSoftId(1034);
 }
@@ -35,14 +27,14 @@ if(API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && API_KEY_AntiCaptcha
 let proxies = [];
 let currennt_porxy = {};
 
-if(UseProxy == true)
+if(config.UseProxy == true)
 {
     proxies = fs.readFileSync('proxy.txt').toString().replace(/\r/g, '').split("\n");
 }
 
 function getProxy()
 {
-    if(proxies.length == 0)
+    if(config.UseProxy == false || proxies.length == 0)
     {
         return {};
     }
@@ -77,7 +69,7 @@ function getProxy()
 
 const API_2Captcha_Validate = async (requestID) => {
     await new Promise(r => setTimeout(r, 2000));
-    let URL = "http://2captcha.com/res.php?key=" + API_KEY_2CAPTCHA + "&action=get&id=" + requestID + "&json=1";
+    let URL = "http://2captcha.com/res.php?key=" + config.API_KEY_2CAPTCHA + "&action=get&id=" + requestID + "&json=1";
     response = await axios.get(URL);
     if(response.data.status == 0)
     {   
@@ -94,7 +86,7 @@ const API_2Captcha_Validate = async (requestID) => {
 };
 
 const API_2Captcha_Request = async () => {
-    let URL = "http://2captcha.com/in.php?key=" + API_KEY_2CAPTCHA + "&method=funcaptcha&publickey=" + funcaptchaSignupPublicKey + "&surl=https://twitch-api.arkoselabs.com&pageurl=https://www.twitch.tv/signup&soft_id=3432&json=1";
+    let URL = "http://2captcha.com/in.php?key=" + config.API_KEY_2CAPTCHA + "&method=funcaptcha&publickey=" + funcaptchaSignupPublicKey + "&surl=https://twitch-api.arkoselabs.com&pageurl=https://www.twitch.tv/signup&soft_id=3432&json=1";
     response = await axios.get(URL);
     try{
         if(response.data.status == 1) {
@@ -175,10 +167,10 @@ const registerAccount = async payload => {
 async function CaptchaAndRegister(credentials, email) {
     console.log('Solving captcha');
     let captchaToken = '';
-    if(API_KEY_2CAPTCHA != 'YOUR 2captcha.com API KEY' && API_KEY_2CAPTCHA != '') {
+    if(config.API_KEY_2CAPTCHA != 'YOUR 2captcha.com API KEY' && config.API_KEY_2CAPTCHA != '') {
         console.log("Using 2Captcha.");
         captchaToken = await API_2Captcha_Request();
-    } else if(API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && API_KEY_AntiCaptcha != '') {
+    } else if(config.API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && config.API_KEY_AntiCaptcha != '') {
         console.log('Using anti-captcha.com');
         captchaToken = await solveArkoseCaptcha();
     } else {
@@ -225,7 +217,7 @@ async function CreateNewAccount(uname)
 }
 
 GettingUsername = async () => {
-    if(RandomUsername == true) {
+    if(config.RandomUsername == true) {
         let uname = generateUsername();
         console.log('Username: ' + uname);
         await CreateNewAccount(uname);
