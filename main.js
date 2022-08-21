@@ -4,9 +4,13 @@ const {generateRandomCredentials, generateUsername} = require('./utils');
 const {getEmail, waitFirstMail} = require('./trash-mail');
 const readline = require("readline");
 const ac = require("@antiadmin/anticaptchaofficial");
+
+
 // Get API Key from Anti-Captcha.com or 2Captcha.com.
-const Token_2CAPTCHA = 'YOUR 2captcha.com API KEY'; // RECOMMENDED / BETTER SOLVING
-const Anti_Captcha_KEY = 'YOUR anti-captcha.com API KEY';
+const API_KEY_2CAPTCHA = 'YOUR 2captcha.com API KEY'; // RECOMMENDED / BETTER SOLVING
+const API_KEY_AntiCaptcha = 'YOUR anti-captcha.com API KEY';
+const RandomUsername = false; // If you want to make new accounts with random usernames, change this to true.
+const UseProxy = true; // If you have proxy list, you can use it. (Put your proxy list in the proxies.txt file)
 
 const CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 const funcaptchaSignupPublicKey = 'E5554D43-23CC-1982-971D-6A2262A2CA24';
@@ -15,20 +19,65 @@ const outFilePathUsers = './results/users.txt';
 const outFilePathPass = './results/pass.txt';
 const outFilePathTokens = './results/tokens.txt';
 
-const RandomUsername = false; // If you want to make new accounts with random usernames, change this to true.
+
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-ac.setAPIKey(Anti_Captcha_KEY);
-ac.settings.funcaptchaApiJSSubdomain = 'twitch-api.arkoselabs.com';
-ac.setSoftId(1034);
+if(API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && API_KEY_AntiCaptcha != '') {
+    ac.setAPIKey(API_KEY_AntiCaptcha);
+    ac.settings.funcaptchaApiJSSubdomain = 'twitch-api.arkoselabs.com';
+    ac.setSoftId(1034);
+}
+
+let proxies = [];
+let currennt_porxy = {};
+
+if(UseProxy == true)
+{
+    proxies = fs.readFileSync('proxy.txt').toString().replace(/\r/g, '').split("\n");
+}
+
+function getProxy()
+{
+    if(proxies.length == 0)
+    {
+        return {};
+    }
+
+    let proxy = proxies[Math.floor(Math.random() * proxies.length)];
+    let proxy_arry = proxy.split(':');
+    if(proxy_arry.length == 2)
+    {
+        return {
+            proxy: {
+                host: proxy_arry[0],
+                port: proxy_arry[1]
+            }
+        };
+    } else if(proxy_arry.length == 4) {
+        return {
+            proxy: {
+                host: proxy_arry[0],
+                port: proxy_arry[1],
+                auth: {
+                    username: proxy_arry[2],
+                    password: proxy_arry[3]
+                }
+            }
+        };
+    } else {
+        console.log("Proxy is not valid!");
+        return {};
+    }
+}
+
 
 const API_2Captcha_Validate = async (requestID) => {
     await new Promise(r => setTimeout(r, 2000));
-    let URL = "http://2captcha.com/res.php?key=" + Token_2CAPTCHA + "&action=get&id=" + requestID + "&json=1";
+    let URL = "http://2captcha.com/res.php?key=" + API_KEY_2CAPTCHA + "&action=get&id=" + requestID + "&json=1";
     response = await axios.get(URL);
     if(response.data.status == 0)
     {   
@@ -45,7 +94,7 @@ const API_2Captcha_Validate = async (requestID) => {
 };
 
 const API_2Captcha_Request = async () => {
-    let URL = "http://2captcha.com/in.php?key=" + Token_2CAPTCHA + "&method=funcaptcha&publickey=" + funcaptchaSignupPublicKey + "&surl=https://twitch-api.arkoselabs.com&pageurl=https://www.twitch.tv/signup&soft_id=3432&json=1";
+    let URL = "http://2captcha.com/in.php?key=" + API_KEY_2CAPTCHA + "&method=funcaptcha&publickey=" + funcaptchaSignupPublicKey + "&surl=https://twitch-api.arkoselabs.com&pageurl=https://www.twitch.tv/signup&soft_id=3432&json=1";
     response = await axios.get(URL);
     try{
         if(response.data.status == 1) {
@@ -106,7 +155,8 @@ const generatePayload = async ({username, password, birthday}, email, captchaTok
 const registerAccount = async payload => {
     try {
         // console.log(payload);
-        const response = await axios.post('https://passport.twitch.tv/register', payload);
+        currennt_porxy = getProxy();
+        const response = await axios.post('https://passport.twitch.tv/register', payload, currennt_porxy);
         const headers = response.headers;
         let output = {};
         output.userid = response.data.userID;
@@ -125,12 +175,12 @@ const registerAccount = async payload => {
 async function CaptchaAndRegister(credentials, email) {
     console.log('Solving captcha');
     let captchaToken = '';
-    if(Anti_Captcha_KEY != 'YOUR anti-captcha.com API KEY') {
-        console.log('Using anti-captcha.com');
-        captchaToken = await solveArkoseCaptcha();
-    } else if(Token_2CAPTCHA != 'YOUR 2captcha.com API KEY') {
+    if(API_KEY_2CAPTCHA != 'YOUR 2captcha.com API KEY' && API_KEY_2CAPTCHA != '') {
         console.log("Using 2Captcha.");
         captchaToken = await API_2Captcha_Request();
+    } else if(API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && API_KEY_AntiCaptcha != '') {
+        console.log('Using anti-captcha.com');
+        captchaToken = await solveArkoseCaptcha();
     } else {
         console.log("Please set your anti-captcha.com API KEY or 2Captcha API KEY.");
         return false;
@@ -263,12 +313,13 @@ const verifyEmail = async (accessToken, userId, email, code) => {
 };
 
 const sendGQLRequest = (accessToken, query) => {
+    let options = currennt_porxy;
+    options.headers = {
+        'Client-Id': CLIENT_ID,
+        'Authorization': `OAuth ${accessToken}`,
+    };
+
     return axios.post('https://gql.twitch.tv/gql',
         {query},
-        {
-            headers: {
-                'Client-Id': CLIENT_ID,
-                'Authorization': `OAuth ${accessToken}`,
-            },
-        });
+        options);
 };
