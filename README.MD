@@ -30,9 +30,29 @@
 ## 💻 Installation
 
 - Clone the repo and do `npm install`
-- Put your `Anti-Captcha` **or** `2Captcha` API key in `main.js`
+- Put your `Anti-Captcha` **or** `2Captcha` API key in `config.js`
 - Run the project (`node main.js`).
 
+## 🔧 Optional
+
+You can use a proxy list to bypass limits.
+
+You can get a free or paid proxy list from [this website](https://www.webshare.io/?referral_code=2ghmowzxmc26).
+
+Put your proxies in the proxy.txt file.
+
+Examples:
+
+```
+192.168.0.1:8080
+192.168.0.2:8085
+```
+or
+
+```
+192.168.0.1:8080:user1:pass1
+192.168.0.2:8085:user2:pass2
+```
 
 ## 📽️ Tutorial and Test
 
