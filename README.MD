@@ -29,14 +29,14 @@
 
 ## 💻 Installation
 
-### Setup:
+### 🟣 Setup:
 - Clone the repo and do `npm install`
 
-## Account creator:
+### 🟣 Account creator:
 - Put your `Anti-Captcha` **or** `2Captcha` API key in `config.js`
 - Run the project (`node main.js`).
 
-### Follow Bot:
+### 🟣 Follow Bot:
 
 - Run the Account creator.
 - Run the `node follow.js`.
