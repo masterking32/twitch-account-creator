@@ -4,7 +4,7 @@
 
 # A NodeJS Bot to create Twitch accounts.
 
-✔️ It will create a new account and verify the account using an email address. ✔️
+✔️ This project will create new accounts and verify the accounts using the email address. ✔️
 
 ✔️ Twitch follow bot added. (08/21/2022) ✔️
 
