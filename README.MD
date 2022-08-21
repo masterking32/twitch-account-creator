@@ -2,9 +2,11 @@
 [![GitHub issues](https://img.shields.io/github/issues/masterking32/twitch-account-creator.svg)](https://github.com/masterking32/twitch-account-creator/issues)
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
 
-# A NodeJS Bot to create a Twitch account.
+# A NodeJS Bot to create Twitch accounts.
 
 ✔️ It will create a new account and verify the account using an email address. ✔️
+
+✔️ Twitch follow bot added. (08/21/2022) ✔️
 
 *❌ Do not abuse this project, this project is made for testing only, and you cannot use it according to Twitch rules. ❌*
 
