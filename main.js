@@ -2,6 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const {generateRandomCredentials, generateUsername} = require('./utils');
 const {getEmail, waitFirstMail} = require('./trash-mail');
+const randomUseragent = require('random-useragent');
 const readline = require("readline");
 const ac = require("@antiadmin/anticaptchaofficial");
 var config = require('./config');
@@ -164,7 +165,7 @@ const registerAccount = async payload => {
     }
 };
 
-async function CaptchaAndRegister(credentials, email) {
+async function CaptchaAndRegister(credentials, email, userAgent) {
     console.log('Solving captcha');
     let captchaToken = '';
     if(config.API_KEY_2CAPTCHA != 'YOUR 2captcha.com API KEY' && config.API_KEY_2CAPTCHA != '') {
@@ -185,29 +186,42 @@ async function CaptchaAndRegister(credentials, email) {
     if(registerData === 'captcha')
     {
         console.log("Try resolve captcha again");
-        return await CaptchaAndRegister(credentials, email)
+        return await CaptchaAndRegister(credentials, email, userAgent)
     }
 
     return registerData;
 }
 async function StartCreate(uname) {
     const credentials = generateRandomCredentials(uname);
+    const userAgent = randomUseragent.getRandom();
+    const DeviceID = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     console.log("Username: " + credentials.username + " Password:" + credentials.password + " BDay: " + credentials.birthday.year + "/" + + credentials.birthday.month + "/"+ credentials.birthday.day);
     console.log('Getting email');
     const email = await getEmail(credentials.username);
-    const registerData = await CaptchaAndRegister(credentials, email);
+    const registerData = await CaptchaAndRegister(credentials, email, userAgent);
     if(registerData == false)
     {
         return false;
     }
+
     const userId = registerData.userid;
     const accessToken = registerData.access_token;
-    console.log('Wait verification mail');
-    const verifyCode = await waitFirstMail(credentials.username);
-    console.log('Verify email, Verify Code:' + verifyCode);
-    await verifyEmail(accessToken, userId, email, verifyCode);
-    console.log('Done');
-    await saveResult(credentials.username, credentials.password, email, userId, accessToken);
+    console.log('Getting integrity token');
+    const integrity_resp = await integrityToken(accessToken, userAgent, DeviceID);
+    if(integrity_resp.data != null && integrity_resp.data.token != null)
+    {
+        const integrity = integrity_resp.data.token;
+        console.log('Wait verification mail');
+        const verifyCode = await waitFirstMail(credentials.username);
+        console.log('Verify email, Verify Code:' + verifyCode);
+        await verifyEmail(accessToken, userId, email, verifyCode, integrity, userAgent, DeviceID);
+        console.log('Follow Games ...');
+        await followChannel(accessToken, integrity, userAgent, DeviceID);
+        console.log('Done');
+        await saveResult(credentials.username, credentials.password, email, userId, accessToken);
+    } else {
+        console.log("Error to getting integrity (Account created but the account is not verified)");
+    }
 }
 
 async function CreateNewAccount(uname)
@@ -279,39 +293,70 @@ module.exports.validateAuthToken = async authToken => {
     return status === 401;
 };
 
-const verifyEmail = async (accessToken, userId, email, code) => {
-    const response = await sendGQLRequest(accessToken, `
-        mutation VerifyEmail {
-          validateVerificationCode(input: {address: "${email}", code: "${code}", key: "${userId}"}) {
-            request {
-              status
-            }
-            error {
-              code
-            }
-          }
-        }
-    `);
+const followChannel = async (accessToken, integrity, userAgent, DeviceID) => {
+    await sendGQLRequest(accessToken, integrity, userAgent, DeviceID, `[{"data":{"followGame":{"game":{"id":"509658","__typename":"Game"},"__typename":"FollowGamePayload"}},"extensions":{"durationMilliseconds":37,"operationName":"OnboardingFollowGame","requestID":"01GDA7VVY8GF8FXTH06P5113MY"}}]`);
+    await sendGQLRequest(accessToken, integrity, userAgent, DeviceID, `[{"operationName":"FollowButton_FollowUser","variables":{"input":{"disableNotifications":false,"targetID":"814157119"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"800e7346bdf7e5278a3c1d3f21b2b56e2639928f86815677a7126b093b2fdd08"}}}]`);
+}
+
+const verifyEmail = async (accessToken, userId, email, code, integrity, userAgent, DeviceID) => {
+    const response = await sendGQLRequest(accessToken, integrity, userAgent, DeviceID, `[{"operationName":"ValidateVerificationCode","variables":{"input":{"code":"${code}","key":"${userId}","address":"${email}"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"05eba55c37ee4eff4dae260850dd6703d99cfde8b8ec99bc97a67e584ae9ec31"}}}]`);
     const response_data = response.data;
-    if(response_data.data.validateVerificationCode !== undefined) {
-        const validateVerificationCode = response_data.data.validateVerificationCode;
+
+    if(response_data[0].data.validateVerificationCode !== undefined) {
+        const validateVerificationCode = response_data[0].data.validateVerificationCode;
         if (validateVerificationCode.request.status == 'VERIFIED') {
             console.log("Account verified");
         } else {
             console.log("Account not verified");
         }
     }
-    
 };
 
-const sendGQLRequest = (accessToken, query) => {
+const integrityToken = async (accessToken, userAgent, DeviceID) => {
+    let options = currennt_porxy;
+    options.headers = {
+        Accept: "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-US",
+        'Client-Id': CLIENT_ID,
+        Connection: "keep-alive",
+        "Content-Type": "text/plain; charset=UTF-8",
+        "Device-ID": DeviceID,
+        Origin: "https://www.twitch.tv",
+        Referer: "https://www.twitch.tv/",
+        Authorization: "OAuth " + accessToken,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+        "Sec-GPC": "1",
+        "User-Agent": userAgent,
+    };
+
+    return await axios.post('https://gql.twitch.tv/integrity', {}, options);
+};
+
+const sendGQLRequest = async (accessToken, integrity, userAgent, DeviceID, query) => {
     let options = currennt_porxy;
     options.headers = {
         'Client-Id': CLIENT_ID,
         'Authorization': `OAuth ${accessToken}`,
+        'Client-Integrity': integrity,
+        Accept: "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-US",
+        'Client-Id': CLIENT_ID,
+        Connection: "keep-alive",
+        "Content-Type": "text/plain; charset=UTF-8",
+        "Device-ID": DeviceID,
+        Origin: "https://www.twitch.tv",
+        Referer: "https://www.twitch.tv/",
+        Authorization: "OAuth " + accessToken,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+        "Sec-GPC": "1",
+        "User-Agent": userAgent,
     };
 
-    return axios.post('https://gql.twitch.tv/gql',
-        {query},
-        options);
+    return await axios.post('https://gql.twitch.tv/gql', query, options);
 };
