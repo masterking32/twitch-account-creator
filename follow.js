@@ -2,6 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const readline = require("readline");
 var config = require('./config');
+const randomUseragent = require('random-useragent');
 
 const outFilePathTokens = './results/tokens.txt';
 
@@ -93,29 +94,64 @@ const GetUserID = async (uname) => {
         return false;
     }
 }
-
-const FollowChannel = async (channel_ID, token) => {
-    let options = getProxy();
-    options.headers  = {
-        'Accept': '*/*',
-        'Accept-Language': 'en-GB',
-        'Authorization': 'OAuth ' + token,
+const integrityToken = async (accessToken, userAgent, DeviceID, options) => {
+    options.headers = {
+        Accept: "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-US",
         'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
-        'Connection': 'keep-alive',
-        'Content-Type': 'text/plain;charset=UTF-8',
-        'Origin': 'https://www.twitch.tv',
-        'Referer': 'https://www.twitch.tv/',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
-        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
+        Connection: "keep-alive",
+        "Content-Type": "text/plain; charset=UTF-8",
+        "Device-ID": DeviceID,
+        Origin: "https://www.twitch.tv",
+        Referer: "https://www.twitch.tv/",
+        Authorization: "OAuth " + accessToken,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+        "Sec-GPC": "1",
+        "User-Agent": userAgent,
     };
-    data = '[{"operationName":"FollowButton_FollowUser","variables":{"input":{"disableNotifications":false,"targetID":"' + channel_ID + '"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"800e7346bdf7e5278a3c1d3f21b2b56e2639928f86815677a7126b093b2fdd08"}}}]'
-    response = await axios.post('https://gql.twitch.tv/gql', data, options);
+
+    return await axios.post('https://gql.twitch.tv/integrity', {}, options);
+};
+
+const FollowChannel = async (channel_ID, accessToken) => {
+    console.log("Follow sent ...");
+    let options = getProxy();
+    const userAgent = randomUseragent.getRandom();
+    const DeviceID = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    let integrity_resp = await integrityToken(accessToken, userAgent, DeviceID, options);
+    if(integrity_resp.data != null && integrity_resp.data.token != null) {
+        const integrity = integrity_resp.data.token;
+        let proxy = options;
+        await sendGQLRequest(proxy, accessToken, integrity, userAgent, DeviceID, `[{"operationName":"FollowButton_FollowUser","variables":{"input":{"disableNotifications":false,"targetID":"${channel_ID}"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"800e7346bdf7e5278a3c1d3f21b2b56e2639928f86815677a7126b093b2fdd08"}}}]`);
+    }
 }
+
+const sendGQLRequest = async (current_porxy, accessToken, integrity, userAgent, DeviceID, query) => {
+    let options = current_porxy;
+    options.headers = {
+        'Client-Integrity': integrity,
+        Accept: "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-US",
+        'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
+        Connection: "keep-alive",
+        "Content-Type": "text/plain; charset=UTF-8",
+        "Device-ID": DeviceID,
+        Origin: "https://www.twitch.tv",
+        Referer: "https://www.twitch.tv/",
+        Authorization: "OAuth " + accessToken,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+        "Sec-GPC": "1",
+        "User-Agent": userAgent,
+    };
+
+    return await axios.post('https://gql.twitch.tv/gql', query, options);
+};
 
 const FollowAccount = async (uname) => {
     userID = await GetUserID(uname);
