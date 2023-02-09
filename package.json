@@ -1,10 +1,25 @@
 {
+  "name" : "twitch-account-creator",
+  "version" : "1.0",
+  "description" : "Twitch Account Creator",
+  "main" : "main.js",
+  "author" : "MasterkinG32",
+  "pkg" : {
+    "scripts" : [
+         "./config.js",
+         "./trash-mail.js",
+         "./utils.js"
+        ],
+     "assets" : [
+       "./node_modules/*"     
+      ] 
+    },
+  "license" : "ISC",
   "dependencies": {
-    "@antiadmin/anticaptchaofficial": "^1.0.24",
     "axios": "^0.27.2",
+    "axios-https-proxy-fix": "^0.17.1",
     "fs": "^0.0.1-security",
     "generate-password": "^1.7.0",
-    "random-useragent": "^0.5.0",
     "readline": "^1.3.0",
     "username-generator": "^1.1.0"
   }

@@ -1,227 +1,418 @@
 const fs = require('fs');
-const axios = require('axios');
-const {generateRandomCredentials, generateUsername} = require('./utils');
+const axios = require('axios-https-proxy-fix');
+const {generateRandomRegisterData, generateUsername, getUserAgent, getProxy, MakeRandomID, TwitchClinetID} = require('./utils');
 const {getEmail, waitFirstMail} = require('./trash-mail');
-const randomUseragent = require('random-useragent');
-const readline = require("readline");
-const ac = require("@antiadmin/anticaptchaofficial");
 var config = require('./config');
-
-const CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-const funcaptchaSignupPublicKey = 'E5554D43-23CC-1982-971D-6A2262A2CA24';
-const outFilePathAll = './results/results.txt';
-const outFilePathUsers = './results/users.txt';
-const outFilePathPass = './results/pass.txt';
-const outFilePathTokens = './results/tokens.txt';
+const readline = require("readline");
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-if(config.API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && config.API_KEY_AntiCaptcha != '') {
-    ac.setAPIKey(config.API_KEY_AntiCaptcha);
-    ac.settings.funcaptchaApiJSSubdomain = 'twitch-api.arkoselabs.com';
-    ac.setSoftId(1034);
-}
+const outFilePathAll = './results/results.txt';
+const outFilePathUsers = './results/users.txt';
+const outFilePathPass = './results/pass.txt';
+const outFilePathTokens = './results/tokens.txt';
 
-let proxies = [];
 let currennt_porxy = {};
+let current_useragent = '';
+let KasdaResponse = {};
 
-if(config.UseProxy == true)
-{
-    proxies = fs.readFileSync('proxy.txt').toString().replace(/\r/g, '').split("\n");
-}
-
-function getProxy()
-{
-    if(config.UseProxy == false || proxies.length == 0)
-    {
-        return {};
-    }
-
-    let proxy = proxies[Math.floor(Math.random() * proxies.length)];
-    let proxy_arry = proxy.split(':');
-    if(proxy_arry.length == 2)
-    {
-        return {
-            proxy: {
-                host: proxy_arry[0],
-                port: proxy_arry[1]
-            }
-        };
-    } else if(proxy_arry.length == 4) {
-        return {
-            proxy: {
-                host: proxy_arry[0],
-                port: proxy_arry[1],
-                auth: {
-                    username: proxy_arry[2],
-                    password: proxy_arry[3]
-                }
-            }
-        };
-    } else {
-        console.log("Proxy is not valid!");
-        return {};
-    }
-}
-
-
-const API_2Captcha_Validate = async (requestID) => {
-    await new Promise(r => setTimeout(r, 2000));
-    let URL = "http://2captcha.com/res.php?key=" + config.API_KEY_2CAPTCHA + "&action=get&id=" + requestID + "&json=1";
-    response = await axios.get(URL);
-    if(response.data.status == 0)
-    {   
-        if(response.data.request == 'ERROR_CAPTCHA_UNSOLVABLE')
-        {
-            console.log('ERROR_CAPTCHA_UNSOLVABLE');
-            return false;
-        }
-        return await API_2Captcha_Validate(requestID);
-    } else {
-        // console.log(response.data);
-        return response.data.request;
-    }
-};
-
-const API_2Captcha_Request = async () => {
-    let URL = "http://2captcha.com/in.php?key=" + config.API_KEY_2CAPTCHA + "&method=funcaptcha&publickey=" + funcaptchaSignupPublicKey + "&surl=https://twitch-api.arkoselabs.com&pageurl=https://www.twitch.tv/signup&soft_id=3432&json=1";
-    response = await axios.get(URL);
-    try{
-        if(response.data.status == 1) {
-            console.log("Request sent to the 2captcha wait a bit, Request ID: " + response.data.request);
-            console.log("Wating to reslove ... (15 - 300 sec)");
-            let validate_resp = await API_2Captcha_Validate(response.data.request);
-            if (validate_resp == false) {
-                console.log("Starting new funcaptcha.");
-                return await API_2Captcha_Request();
-            } 
-            return validate_resp;
-        } else {
-            console.log("Something is wrong with 2Captcha, Check your 2Captcha API Key.");
-            return await API_2Captcha_Request();
-        }
-    } catch (e) {
-        console.log("Something is wrong with 2Captcha, Check your 2Captcha API Key!" + e);
-        return await API_2Captcha_Request();
-    }
-}
-
-// function replaceAll(str, find, replace) {
-//     return str.replace(new RegExp(find, 'g'), replace);
-// }
-
-const solveArkoseCaptcha = async () => {
-    let captcha = null;
-    ac.solveFunCaptchaProxyless('https://www.twitch.tv/signup', funcaptchaSignupPublicKey)
-    .then(token => {
-        // console.log('response: '+token);
-        // token = replaceAll(token, 'funcaptcha.com', 'client-api.arkoselabs.com');
-        // token = replaceAll(token, 'funcaptcha.com', 'twitch-api.arkoselabs.com');
-        // token = token.replace('|pk=','|lang=en|pk=');
-        // token = replaceAll(token, 'ap-southeast-1', 'eu-west-1');
-        captcha = token;
-       })
-    .catch(error => {console.log('test received error '+error); captcha = false;});
-   
-    while(captcha == null) {
-        await new Promise(r => setTimeout(r, 100));
-    }
-
-    return captcha;
-};
-
-const generatePayload = async ({username, password, birthday}, email, captchaToken) => {
-    return {
-        username,
-        password,
-        email,
-        birthday,
-        include_verification_code: true,
-        client_id: CLIENT_ID,
-        arkose: {token: captchaToken},
-    };
-};
-
-const registerAccount = async payload => {
+const KasdaResolver = async () => {
     try {
-        // console.log(payload);
-        currennt_porxy = getProxy();
-        const response = await axios.post('https://passport.twitch.tv/register', payload, currennt_porxy);
-        const headers = response.headers;
-        let output = {};
-        output.userid = response.data.userID;
-        output.access_token = response.data.access_token;
-        return output;
+
+        let response = await axios.post('https://api.capsolver.com/kasada/invoke', {
+            "clientKey": config.CapSolverKey,
+            "appId": 'B278567A-C94E-457E-B419-F1D6A5D1AA6D',
+            "task": {
+                "type": "AntiKasadaTask",
+                "pageURL": "https://gql.twitch.tv/", //Required
+                "proxy": currennt_porxy.proxy.href, //Required
+                "cd": true, //Optional
+                "onlyCD": false, //Optional
+                "userAgent": current_useragent //Optional
+            }
+        }, {headers: { 'content-type': 'text/json' }});
+        if(response.data.success)
+        {
+            current_useragent = response.data.solution['user-agent'];
+            KasdaResponse = {};
+            KasdaResponse.original = response.data.solution;
+            KasdaResponse.useragent = response.data.solution['user-agent'];
+            KasdaResponse.kpsdkcd = response.data.solution['x-kpsdk-cd'];
+            KasdaResponse.kpsdkct = response.data.solution['x-kpsdk-ct'];
+        }
+        return KasdaResponse;
     } catch (e) {
-        console.log(e.response.data.error);
-        if(e.response.data.error == 'Please complete the CAPTCHA correctly.') {
-            return 'captcha';
+        // console.log(e);
+    }
+
+    return false;
+};
+
+const integrityGetToken = async (kpsdkcd, kpsdkct, cookies) => {
+    try {
+        let response = await axios.post('https://passport.twitch.tv/integrity', {}, {
+            proxy: currennt_porxy.proxy,
+            headers: { 
+                'User-Agent': current_useragent,
+                'Accept': '*/*',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Referer': 'https://www.twitch.tv/',
+                'x-kpsdk-ct': kpsdkct,
+                'x-kpsdk-cd': kpsdkcd,
+                'Origin': 'https://www.twitch.tv',
+                'DNT': 1,
+                'Connection': 'keep-alive',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-site',
+                'Content-Length': 0,
+            }
+        });
+        if(response.data.token)
+        {
+            response.headers['set-cookie'].forEach(element => {
+                let p1 = element.split(';')[0];
+                let p2 = p1.split('=');
+                cookies[p2[0]] = p2[1];
+            });
+
+            let result = [];
+            result['token'] = response.data.token;
+            result['cookies'] = cookies;
+            return result;
+        }
+    } catch (e) {
+        console.log(e);
+    }
+
+    return false;
+};
+
+const RegisterFinal = async (cookies, PostParams) => {
+    try {
+
+        let options = currennt_porxy;
+        let cookies_string = '';
+        for (var key in cookies) {
+            cookies_string = cookies_string + key + "=" + cookies[key] + "; ";
         }
 
+        options.headers = { 
+            'User-Agent': current_useragent,
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Referer': 'https://www.twitch.tv/',
+            'Content-Type': 'text/plain;charset=UTF-8',
+            'Origin': 'https://www.twitch.tv',
+            'DNT': 1,
+            'Connection': 'keep-alive',
+            'Cookie': cookies_string,
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site'
+        };
+
+        let response = await axios.post('https://passport.twitch.tv/protected_register',  PostParams, options);
+
+        return response.data;
+    } catch (e) {
+        return e.response.data;
+    }
+};
+
+const GetTwitchCookies = async () => {
+    try {
+        let options = currennt_porxy;
+        // delete currennt_porxy.proxy.href;
+        options.headers = { 
+            'User-Agent': current_useragent,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': 1,
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': 1,
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+        };
+        let response = await axios.get('https://twitch.tv', options);
+
+        let cookies = [];
+        response.headers['set-cookie'].forEach(element => {
+            let p1 = element.split(';')[0];
+            let p2 = p1.split('=');
+            cookies[p2[0]] = p2[1];
+        });
+        return cookies;
+    } catch (e) {
+        console.log(e);
+    }
+
+    return false;
+};
+
+const verifyEmail = async (ClientID, XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity, code, userId, email) => {
+    let query = `[{"operationName":"ValidateVerificationCode","variables":{"input":{"code":"${code}","key":"${userId}","address":"${email}"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"05eba55c37ee4eff4dae260850dd6703d99cfde8b8ec99bc97a67e584ae9ec31"}}}]`;
+    try {
+
+        let options = currennt_porxy;
+
+        options.headers = { 
+            'User-Agent': current_useragent,
+            Accept: 'application/json',
+            'Accept-Language': 'en-US',
+            'Accept-Encoding': 'identity',
+            Referer: 'https://www.twitch.tv/',
+            'Client-Id': ClientID,
+            'X-Device-Id': XDeviceId,
+            'Client-Version': ClientVersion,
+            'Client-Session': ClientSessionId,
+            Authorization: "OAuth " + accessToken,
+            'Client-Integrity': ClientIntegrity,
+            'Content-Type': 'text/plain;charset=UTF-8',
+            Origin: 'https://www.twitch.tv',
+            DNT: 1,
+            Connection: 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site'
+        };
+       
+        let response = await axios.post('https://gql.twitch.tv/gql#origin=twilight', query, options);
+        return response.data;
+    } catch (e) {
+        console.log(e);
+        return {};
+    }
+};
+
+const FollowGames = async (ClientID, XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity) => {
+    let query = `[{"operationName":"OnboardingFollowGame","variables":{"id":"509658"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"4cbe32f65d5272a46515f0eb05b257d99d03fef995a526cde1c88ff72337e94f"}}},{"operationName":"OnboardingFollowGame","variables":{"id":"21779"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"4cbe32f65d5272a46515f0eb05b257d99d03fef995a526cde1c88ff72337e94f"}}},{"operationName":"OnboardingFollowGame","variables":{"id":"27471"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"4cbe32f65d5272a46515f0eb05b257d99d03fef995a526cde1c88ff72337e94f"}}},{"operationName":"OnboardingFollowGame","variables":{"id":"516575"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"4cbe32f65d5272a46515f0eb05b257d99d03fef995a526cde1c88ff72337e94f"}}},{"operationName":"OnboardingFollowUser","variables":{"id":"814157119"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"539461eda09076f0493d22d92f9684be6d0a7d5a7d450a76d3a4a3bac173fec7"}}},{"operationName":"OnboardingFollowUser","variables":{"id":"31545223"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"539461eda09076f0493d22d92f9684be6d0a7d5a7d450a76d3a4a3bac173fec7"}}}]`;
+    try {
+
+        let options = currennt_porxy;
+
+        options.headers = { 
+            'User-Agent': current_useragent,
+            Accept: 'application/json',
+            'Accept-Language': 'en-US',
+            'Accept-Encoding': 'identity',
+            Referer: 'https://www.twitch.tv/',
+            'Client-Id': ClientID,
+            'X-Device-Id': XDeviceId,
+            'Client-Version': ClientVersion,
+            'Client-Session': ClientSessionId,
+            Authorization: "OAuth " + accessToken,
+            'Client-Integrity': ClientIntegrity,
+            'Content-Type': 'text/plain;charset=UTF-8',
+            Origin: 'https://www.twitch.tv',
+            DNT: 1,
+            Connection: 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site'
+        };
+       
+        let response = await axios.post('https://gql.twitch.tv/gql#origin=twilight', query, options);
+        return response.data;
+    } catch (e) {
+        console.log(e);
+        return {};
+    }
+};
+
+const PublicIntegrityGetToken = async (TwitchClinetID, XDeviceId, ClientRequestId, ClientSessionId, ClientVersion, kpsdkct, kpsdkcd, accesstoken) => {
+    try {
+
+        let options = currennt_porxy;
+        options.headers = { 
+            'User-Agent': current_useragent,
+            Accept: 'application/json',
+            'Accept-Language': 'en-US',
+            'Accept-Encoding': 'identity',
+            Authorization: "OAuth " + accesstoken,
+            'Referer': 'https://www.twitch.tv/',
+            'Client-Id': TwitchClinetID,
+            'X-Device-Id': XDeviceId,
+            'Client-Request-Id': ClientRequestId,
+            'Client-Session-Id': ClientSessionId,
+            'Client-Version': ClientVersion,
+            'x-kpsdk-ct': kpsdkct,
+            'x-kpsdk-cd': kpsdkcd,
+            'Origin': 'https://www.twitch.tv',
+            'DNT': 1,
+            'Connection': 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site',
+            'Content-Length': 0,
+        };
+        
+        let response = await axios.post('https://gql.twitch.tv/integrity', {}, options);
+        if(response.data.token) {
+            cookies = '';
+            response.headers['set-cookie'].forEach(element => {
+                let p1 = element.split(';')[0];
+                cookies = cookies + p1 + '; ';
+            });
+
+            let result = [];
+            result['token'] = response.data.token;
+            result['cookies'] = cookies;
+            return result;
+        }
+    } catch (e) {
+        console.log(e);
+    }
+
+    return false;
+};
+
+const IntegrityOption = async () => {
+    try {
+
+        let options = currennt_porxy;
+        options.headers = { 
+            'User-Agent': current_useragent,
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Access-Control-Request-Method': 'POST',
+            'Access-Control-Request-Headers': 'x-kpsdk-cd,x-kpsdk-ct',
+            'Referer': 'https://www.twitch.tv/',
+            'Origin': 'https://www.twitch.tv',
+            'DNT': 1,
+            'Connection': 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site'
+        };
+
+        await axios.options('https://passport.twitch.tv/integrity',  options);
+        return true;
+    } catch (e) {
         return false;
     }
 };
 
-async function CaptchaAndRegister(credentials, email, userAgent) {
-    console.log('Solving captcha');
-    let captchaToken = '';
-    if(config.API_KEY_2CAPTCHA != 'YOUR 2captcha.com API KEY' && config.API_KEY_2CAPTCHA != '') {
-        console.log("Using 2Captcha.");
-        captchaToken = await API_2Captcha_Request();
-    } else if(config.API_KEY_AntiCaptcha != 'YOUR anti-captcha.com API KEY' && config.API_KEY_AntiCaptcha != '') {
-        console.log('Using anti-captcha.com');
-        captchaToken = await solveArkoseCaptcha();
-    } else {
-        console.log("Please set your anti-captcha.com API KEY or 2Captcha API KEY.");
-        return false;
-    }
-
-    console.log('Generating payload');
-    const payload = await generatePayload(credentials, email, captchaToken);
-    console.log('Captcha found, registering account ...');
-    const registerData = await registerAccount(payload);
-    if(registerData === 'captcha')
-    {
-        console.log("Try resolve captcha again");
-        return await CaptchaAndRegister(credentials, email, userAgent)
-    }
-
-    return registerData;
-}
 async function StartCreate(uname) {
-    const credentials = generateRandomCredentials(uname);
-    const userAgent = randomUseragent.getRandom();
-    const DeviceID = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    console.log("Username: " + credentials.username + " Password:" + credentials.password + " BDay: " + credentials.birthday.year + "/" + + credentials.birthday.month + "/"+ credentials.birthday.day);
-    console.log('Getting email');
-    const email = await getEmail(credentials.username);
-    const registerData = await CaptchaAndRegister(credentials, email, userAgent);
-    if(registerData == false)
+    currennt_porxy = getProxy(config.proxyType);
+    current_useragent = getUserAgent();
+    const email = await getEmail(uname);
+    let register_post_data = generateRandomRegisterData(uname, email);
+    console.log('\x1b[32m--------------------------------------\x1b[37m');
+    console.log('\x1b[32m------------ Account Info ------------\x1b[37m');
+    console.log('\x1b[32m--------------------------------------\x1b[37m');
+    console.log("\x1b[32mUsername: " + register_post_data.username + "\x1b[37m");
+    console.log("\x1b[32mPassword: " + register_post_data.password + "\x1b[37m");
+    console.log("\x1b[32memail: " + email);
+    console.log("\x1b[32mBirthday: " + register_post_data.birthday.year + "/" + register_post_data.birthday.month + "/" + register_post_data.birthday.day) + "\x1b[37m";
+    console.log('\x1b[33m--------------------------------------\x1b[37m');
+    console.log('\x1b[33m------- Start creating account -------\x1b[37m');
+    console.log('\x1b[33m--------------------------------------\x1b[37m');
+    console.log('\x1b[37m 1) Getting Twitch cookies!');
+    let cookies = await GetTwitchCookies();
+    if(cookies === false) {
+        console.log('\x1b[37m Unable to get twitch cookies!');
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        return;
+    }
+    console.log('\x1b[37m 2) Getting Kasada code ...');
+    let kasada = await KasdaResolver();
+    if(kasada == false)
     {
-        return false;
+        console.log('\x1b[37m Unable to solve Kasada!');
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        return;
+    }
+    console.log('\x1b[37m 3) Getting local integrity token ...');
+    await IntegrityOption();
+    let integrityData = await integrityGetToken(KasdaResponse.kpsdkcd, KasdaResponse.kpsdkct, cookies);
+    if(integrityData['token'] == false)
+    {
+        console.log('\x1b[37m Unable to get register token!');
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        return;
+    }
+    
+    console.log('\x1b[37m 4) Creating account ...');
+    register_post_data.integrity_token = integrityData['token'];
+    let protected_register = await RegisterFinal(integrityData['cookies'], register_post_data);
+    if("error" in protected_register)
+    {
+        console.log('\x1b[31m ' + protected_register.error);
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        return;
     }
 
-    const userId = registerData.userid;
-    const accessToken = registerData.access_token;
-    console.log('Getting integrity token');
-    const integrity_resp = await integrityToken(accessToken, userAgent, DeviceID);
-    if(integrity_resp.data != null && integrity_resp.data.token != null)
-    {
-        const integrity = integrity_resp.data.token;
-        console.log('Wait verification mail');
-        const verifyCode = await waitFirstMail(credentials.username);
-        console.log('Verify email, Verify Code:' + verifyCode);
-        await verifyEmail(accessToken, userId, email, verifyCode, integrity, userAgent, DeviceID);
-        console.log('Follow Games ...');
-        await followChannel(accessToken, integrity, userAgent, DeviceID);
-        console.log('Done');
-        await saveResult(credentials.username, credentials.password, email, userId, accessToken);
-    } else {
-        console.log("Error to getting integrity (Account created but the account is not verified)");
+    if(!("access_token" in protected_register && "userID" in protected_register)){
+        
+        console.log('\x1b[31m Something is wrong!!!');
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
     }
+
+    let userID = protected_register.userID;
+    let access_token = protected_register.access_token;
+    console.log("\x1b[32mAccount Created!\x1b[37m");
+    console.log('\x1b[32mUserID: ' + userID + ' AccessToken: ' + access_token + "\x1b[37m");
+
+    console.log('\x1b[37m 5) Waiting for verification email ...');
+    const verifyCode = await waitFirstMail(register_post_data.username);
+    console.log('Verify Code:' + verifyCode);
+    
+    console.log('\x1b[37m 6) Getting Kasada code ...');
+    let kasada2 = await KasdaResolver();
+    if(kasada2 == false)
+    {
+        console.log('\x1b[37m Unable to solve Kasada!');
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        return;
+    }
+
+    let ClientID = TwitchClinetID;
+    let ClientSessionId = MakeRandomID(16).toLowerCase();
+    let XDeviceId = cookies['unique_id'];
+    let ClientVersion = '3040e141-5964-4d72-b67d-e73c1cf355b5';
+    let ClientRequestID = MakeRandomID(32);
+    
+    console.log('\x1b[37m 7) Getting public integrity token ...');
+    let PublicInter = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token)
+
+    console.log('\x1b[37m 8) Try to verify the account ...');
+    let verifyEmailResponse = await verifyEmail(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter['token'], verifyCode, userID, email) 
+    
+    console.log('\x1b[33m--------------------------------------\x1b[37m');
+    if(verifyEmailResponse[0].data.validateVerificationCode.request.status == 'VERIFIED')
+    {
+        await saveResult(register_post_data.username, register_post_data.password, register_post_data.email, userID, access_token);
+        console.log("\x1b[32mAccount verified and saved!\x1b[37m");
+    }
+    console.log('\x1b[33m--------------------------------------\x1b[37m');
+    console.log('\x1b[33m 9) Following Games...');
+    ClientRequestID = MakeRandomID(32);
+
+    console.log('\x1b[37m 9.1) Getting Kasada code ...');
+    let kasada3 = await KasdaResolver();
+    if(kasada3 == false)
+    {
+        console.log('\x1b[37m Unable to solve Kasada!');
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        return;
+    }
+
+    console.log('\x1b[37m 9.2) Getting public integrity token ...');
+    let PublicInter2 = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token);
+    await FollowGames(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter2['token']);
+    console.log('\x1b[33m--------------------------------------\x1b[37m');
+    console.log('\x1b[33m Account is ready!\x1b[37m');
+    console.log('\x1b[33m--------------------------------------\x1b[37m');
 }
 
 async function CreateNewAccount(uname)
@@ -233,16 +424,55 @@ async function CreateNewAccount(uname)
 GettingUsername = async () => {
     if(config.RandomUsername == true) {
         let uname = generateUsername();
-        console.log('Username: ' + uname);
+        console.log('Random username: ' + uname);
         await CreateNewAccount(uname);
     } else {
-        rl.question("Username?\n", function(uname) {
+        rl.question("Please choose a username:\n", function(uname) {
             CreateNewAccount(uname)
         });
     }
 };
 
-GettingUsername();
+StartProgram = async () => {
+    console.log('\x1b[31m---------------------------------------\x1b[37m');
+    console.log('\x1b[31m---------------------------------------\x1b[37m');
+    console.log('\x1b[31m---------------------------------------\x1b[37m');
+    console.log('\x1b[31m| MasterkinG32 Twitch Account Creator |\x1b[37m');
+    console.log('\x1b[31m---------------------------------------\x1b[37m');
+    console.log('\x1b[31m---------------------------------------\x1b[37m');
+    console.log('\x1b[31m---------------------------------------\x1b[37m');
+    if(config.CapSolverKey == 'YOUR CapSolver API KEY') {
+        console.log('\x1b[35mYour captcha solver API token (READ DOCUMENT TO KNOW HOW TO GET IT):\x1b[37m');
+        it = rl[Symbol.asyncIterator]();
+        let cpsl = await it.next();
+        config.CapSolverKey = cpsl.value;
+    }
+
+    console.log('\x1b[35mCreate accounts with random Username[y/yes]:\x1b[37m');
+    it = rl[Symbol.asyncIterator]();
+    let rdu = await it.next();
+    let rdus = rdu.value;
+    if(rdus.toLowerCase() == 'y' || rdus.toLowerCase() == 'yes')
+    {
+        config.RandomUsername = true;
+    } else {
+        config.RandomUsername = false;
+    }
+
+    console.log('\x1b[35mProxy type in proxy.txt [http/https/socks5/socks5]:\x1b[37m');
+    it = rl[Symbol.asyncIterator]();
+    let proxy_type = await it.next();
+    let proxy_typev = proxy_type.value;
+    if(proxy_typev.toLowerCase() == 'http' || proxy_typev.toLowerCase() == 'https' || proxy_typev.toLowerCase() == 'socks' || proxy_typev.toLowerCase() == 'socks5')
+    {
+        config.proxyType = proxy_typev.toLowerCase();
+    }
+
+    console.log('\x1b[33m---------------------------------------\x1b[37m');
+    GettingUsername();
+}
+
+StartProgram();
 
 async function saveResult(username, password, email, userid, token) {
     if (!fs.existsSync(outFilePathAll))
@@ -281,82 +511,4 @@ async function saveResult(username, password, email, userid, token) {
             if (err) throw err;
             console.log("Data Saved.");
     });
-};
-
-module.exports.validateAuthToken = async authToken => {
-    const {status} = await axios.get('https://id.twitch.tv/oauth2/validate', {
-        headers: {
-            Authorization: `OAuth ${authToken}`,
-        },
-        validateStatus: status => status === 401,
-    });
-    return status === 401;
-};
-
-const followChannel = async (accessToken, integrity, userAgent, DeviceID) => {
-    await sendGQLRequest(accessToken, integrity, userAgent, DeviceID, `[{"data":{"followGame":{"game":{"id":"509658","__typename":"Game"},"__typename":"FollowGamePayload"}},"extensions":{"durationMilliseconds":37,"operationName":"OnboardingFollowGame","requestID":"01GDA7VVY8GF8FXTH06P5113MY"}}]`);
-    await sendGQLRequest(accessToken, integrity, userAgent, DeviceID, `[{"operationName":"FollowButton_FollowUser","variables":{"input":{"disableNotifications":false,"targetID":"814157119"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"800e7346bdf7e5278a3c1d3f21b2b56e2639928f86815677a7126b093b2fdd08"}}}]`);
-}
-
-const verifyEmail = async (accessToken, userId, email, code, integrity, userAgent, DeviceID) => {
-    const response = await sendGQLRequest(accessToken, integrity, userAgent, DeviceID, `[{"operationName":"ValidateVerificationCode","variables":{"input":{"code":"${code}","key":"${userId}","address":"${email}"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"05eba55c37ee4eff4dae260850dd6703d99cfde8b8ec99bc97a67e584ae9ec31"}}}]`);
-    const response_data = response.data;
-
-    if(response_data[0].data.validateVerificationCode !== undefined) {
-        const validateVerificationCode = response_data[0].data.validateVerificationCode;
-        if (validateVerificationCode.request.status == 'VERIFIED') {
-            console.log("Account verified");
-        } else {
-            console.log("Account not verified");
-        }
-    }
-};
-
-const integrityToken = async (accessToken, userAgent, DeviceID) => {
-    let options = currennt_porxy;
-    options.headers = {
-        Accept: "*/*",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "en-US",
-        'Client-Id': CLIENT_ID,
-        Connection: "keep-alive",
-        "Content-Type": "text/plain; charset=UTF-8",
-        "Device-ID": DeviceID,
-        Origin: "https://www.twitch.tv",
-        Referer: "https://www.twitch.tv/",
-        Authorization: "OAuth " + accessToken,
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-site",
-        "Sec-GPC": "1",
-        "User-Agent": userAgent,
-    };
-
-    return await axios.post('https://gql.twitch.tv/integrity', {}, options);
-};
-
-const sendGQLRequest = async (accessToken, integrity, userAgent, DeviceID, query) => {
-    let options = currennt_porxy;
-    options.headers = {
-        'Client-Id': CLIENT_ID,
-        'Authorization': `OAuth ${accessToken}`,
-        'Client-Integrity': integrity,
-        Accept: "*/*",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "en-US",
-        'Client-Id': CLIENT_ID,
-        Connection: "keep-alive",
-        "Content-Type": "text/plain; charset=UTF-8",
-        "Device-ID": DeviceID,
-        Origin: "https://www.twitch.tv",
-        Referer: "https://www.twitch.tv/",
-        Authorization: "OAuth " + accessToken,
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-site",
-        "Sec-GPC": "1",
-        "User-Agent": userAgent,
-    };
-
-    return await axios.post('https://gql.twitch.tv/gql', query, options);
 };

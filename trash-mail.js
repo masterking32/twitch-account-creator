@@ -12,13 +12,6 @@ module.exports.getAllMails = async username => {
     return response.data;
 };
 
-module.exports.getMailHTMLContent = async (login, mailId) => {
-    const {body} = await axios.get('https://tm.in-ulm.de/mail.php', {
-        params: {search: login, nr: mailId},
-    });
-    return body;
-};
-
 module.exports.waitFirstMail = name => {
     return new Promise(async resolve => {
         const check = async () => {

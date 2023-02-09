@@ -1,14 +1,11 @@
 [![GitHub stars](https://img.shields.io/github/stars/masterking32/twitch-account-creator.svg)](https://github.com/masterking32/twitch-account-creator/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/masterking32/twitch-account-creator.svg)](https://github.com/masterking32/twitch-account-creator/issues)
-[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
 
 # A NodeJS Bot to create Twitch accounts.
 
-# ❌❌❌ This repo is deprecated for now. ❌❌❌
+# TESTED AND WORKS (0/FEB/2023)
 
 ✔️ This project will create new accounts and verify the accounts using the email address. ✔️
-
-✔️ Twitch follow bot added. (08/21/2022) ✔️
 
 *❌ Do not abuse this project, this project is made for testing only, and you cannot use it according to Twitch rules. ❌*
 
@@ -25,11 +22,9 @@
 
 ✅ Get an API key from:
 
-**🟢 [2Captcha to resolve Twitch FunCaptcha](https://2captcha.com?from=8210547)**. (Required Balance/Recommended)
+**🟢 [1) Create an account on this website, Add some funds, and then add `Pay-Per-Usage solving API Key` to your config file.](https://dashboard.capsolver.com/passport/register?inviteCode=Lpullbhszlum)** (Required Balance)
 
-**🔴  OR  🔴**
-
-**🟢 [Anti-Captcha to resolve Twitch FunCaptcha](http://getcaptchasolution.com/svlzmusv0h)**. (Required Balance)
+**🟢 [2) Create an account and buy some `http` proxies and put proxies in `proxy.txt` file.](https://www.webshare.io/?referral_code=2ghmowzxmc26)** (Required Balance)
 
 ## 💻 Installation
 
@@ -37,17 +32,11 @@
 - Clone the repo and do `npm install`
 
 ### 🟣 Account creator:
-- Put your `Anti-Captcha` **or** `2Captcha` API key in `config.js`
+- Put your `YOUR Solver API KEY` API key in `config.js`
+- Put your `Proxies` API key in `config.js`
 - Run the project (`node main.js`).
 
-### 🟣 Follow Bot:
-
-- Run the Account creator.
-- Run the `node follow.js`.
-
 ## 🔧 Optional
-
-You can use a proxy list to bypass limits.
 
 You can get a free or paid proxy list from [this website](https://www.webshare.io/?referral_code=2ghmowzxmc26).
 
