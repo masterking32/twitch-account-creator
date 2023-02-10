@@ -59,7 +59,7 @@ or
 
 ## 📽️ Tutorial and Test
 
-<a href="https://www.youtube.com/watch?v=fC2KgnYoETw">
+<a href="https://youtu.be/Qi2NqoZbxRA">
   <img align="center" src="https://raw.githubusercontent.com/masterking32/twitch-account-creator/main/hqdefault.jpg" alt="Youtube Video" />
 </a>
 
