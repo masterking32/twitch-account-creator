@@ -28,8 +28,6 @@
 
 ## 💻 Installation
 
-#### You can [download the project for Windows/Linux](https://github.com/masterking32/twitch-account-creator/releases) or Run in it manually.
-
 ### 🟣 Setup:
 - Clone the repo and do `npm install`
 
