@@ -36,6 +36,12 @@
 - Put your `Proxies` API key in `config.js`
 - Run the project (`node main.js`).
 
+## 🫂 Follow Bot
+
+- Create some twitch accounts with the main bot. (If you have any tokens you can put your tokens inside the `results/tokens.txt`)
+- Make sure you have a proxy list and you have already set up the main bot. ([Requirements](https://github.com/masterking32/twitch-account-creator#%EF%B8%8F-requirements))
+- Run `node follow.js`.
+
 ## 🔧 Optional
 
 You can get a free or paid proxy list from [this website](https://www.webshare.io/?referral_code=2ghmowzxmc26).
