@@ -24,6 +24,8 @@
 
 **🟢 [1) Create an account on this website, Add some funds, and then add `Pay-Per-Usage solving API Key` to your config file.](https://dashboard.capsolver.com/passport/register?inviteCode=Lpullbhszlum)** (Required Balance)
 
+✅ Get some HTTP Proxies:
+
 **🟢 [2) Create an account and buy some `http` proxies and put proxies in `proxy.txt` file.](https://www.webshare.io/?referral_code=2ghmowzxmc26)** (Required Balance)
 
 ## 💻 Installation
