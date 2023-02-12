@@ -1,7 +1,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/masterking32/twitch-account-creator.svg)](https://github.com/masterking32/twitch-account-creator/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/masterking32/twitch-account-creator.svg)](https://github.com/masterking32/twitch-account-creator/issues)
 
-# A NodeJS Bot to create Twitch accounts.
+# A NodeJS bot to create Twitch accounts and follow other Twitch accounts.
 
 # TESTED AND WORKS (02/FEB/2023)
 
