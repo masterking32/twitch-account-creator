@@ -437,7 +437,7 @@ StartProgram = async () => {
     console.log('\x1b[31m---------------------------------------\x1b[37m');
     console.log('\x1b[31m---------------------------------------\x1b[37m');
     console.log('\x1b[31m---------------------------------------\x1b[37m');
-    console.log('\x1b[31m| MasterkinG32 Twitch Account Creator |\x1b[37m');
+    console.log('\x1b[31m| \x1b[33mMasterkinG32 Twitch Account Creator\x1b[31m |\x1b[37m');
     console.log('\x1b[31m---------------------------------------\x1b[37m');
     console.log('\x1b[31m---------------------------------------\x1b[37m');
     console.log('\x1b[31m---------------------------------------\x1b[37m');
