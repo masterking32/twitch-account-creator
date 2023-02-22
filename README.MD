@@ -35,7 +35,7 @@
 
 ### 🟣 Account creator:
 - Put your `YOUR Solver API KEY` API key in `config.js`
-- Put your `Proxies` API key in `config.js`
+- Put your `Proxies` in `config.js`
 - Run the project (`node main.js`).
 
 ## 🫂 Follow Bot
