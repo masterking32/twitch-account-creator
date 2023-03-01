@@ -48,7 +48,8 @@ const KasdaResolver = async () => {
         // console.log(e);
     }
 
-    return false;
+    console.log("Unable to get Kasada, Try again ...")
+    return await KasdaResolver();
 };
 
 const integrityGetToken = async (kpsdkcd, kpsdkct, cookies) => {
