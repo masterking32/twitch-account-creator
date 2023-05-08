@@ -1,6 +1,6 @@
 const fs = require('fs');
 const axios = require('axios-https-proxy-fix');
-const {generateRandomRegisterData, generateUsername, getUserAgent, getProxy, MakeRandomID, TwitchClinetID} = require('./utils');
+const {generateRandomRegisterData, generateUsername, getUserAgent, getProxy, MakeRandomID, TwitchClinetID, GetAvatarURL} = require('./utils');
 const {getEmail, waitFirstMail} = require('./trash-mail');
 var config = require('./config');
 const readline = require("readline");
@@ -303,6 +303,143 @@ const IntegrityOption = async () => {
     }
 };
 
+const GetAvatar = async (uname) => {
+    try {
+
+        
+        let AvatarURL = GetAvatarURL(uname);
+        let response = await axios.get(AvatarURL);
+        return response.data;
+    } catch (e) {
+        // console.log(e);
+    }
+    return false;
+};
+
+
+const RequestUpdateAvatar = async (ClientID, XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity, UserID) => {
+    let query = `[{"operationName":"EditProfile_CreateProfileImageUploadURL","variables":{"input":{"userID":"` +  UserID + `","format":"PNG"}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"e1b65d20f16065b982873da89e56d9b181f56ba6047d2f0e458579c4033fba01"}}}]`;
+    try {
+
+        let options = currennt_porxy;
+
+        options.headers = { 
+            'User-Agent': current_useragent,
+            Accept: 'application/json',
+            'Accept-Language': 'en-US',
+            'Accept-Encoding': 'identity',
+            Referer: 'https://www.twitch.tv/',
+            'Client-Id': ClientID,
+            'X-Device-Id': XDeviceId,
+            'Client-Version': ClientVersion,
+            'Client-Session': ClientSessionId,
+            Authorization: "OAuth " + accessToken,
+            'Client-Integrity': ClientIntegrity,
+            'Content-Type': 'text/plain;charset=UTF-8',
+            Origin: 'https://www.twitch.tv',
+            DNT: 1,
+            Connection: 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site'
+        };
+       
+        let response = await axios.post('https://gql.twitch.tv/gql#origin=twilight', query, options);
+        return response.data;
+    } catch (e) {
+        console.log(e);
+        return {};
+    }
+};
+
+
+
+const RequestUpdateProfile = async (ClientID, XDeviceId, ClientVersion, ClientSessionId, accessToken, ClientIntegrity, username) => {
+    let query = `[{"operationName":"UserProfileEditor","variables":{"login":"` + username + `"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"fd61d6ac5129730d614571a926d0334683ce70ce4e93aa82412e3a5a8c360bc1"}}}]`;
+    try {
+
+        let options = currennt_porxy;
+
+        options.headers = { 
+            'User-Agent': current_useragent,
+            Accept: 'application/json',
+            'Accept-Language': 'en-US',
+            'Accept-Encoding': 'identity',
+            Referer: 'https://www.twitch.tv/',
+            'Client-Id': ClientID,
+            'X-Device-Id': XDeviceId,
+            'Client-Version': ClientVersion,
+            'Client-Session': ClientSessionId,
+            Authorization: "OAuth " + accessToken,
+            'Client-Integrity': ClientIntegrity,
+            'Content-Type': 'text/plain;charset=UTF-8',
+            Origin: 'https://www.twitch.tv',
+            DNT: 1,
+            Connection: 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site'
+        };
+       
+        let response = await axios.post('https://gql.twitch.tv/gql#origin=twilight', query, options);
+        return response.data;
+    } catch (e) {
+        console.log(e);
+        return {};
+    }
+};
+
+const UploadFileOptions = async (UploadURL) => {
+    try {
+        let options = currennt_porxy;
+        options.headers = { 
+            'User-Agent': current_useragent,
+            Accept: '*/*',
+            'Accept-Language': ' en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            Referer: 'https://www.twitch.tv/',
+            Origin: 'https://www.twitch.tv',
+            DNT: 1,
+            Connection: 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site'
+        };
+       
+        let response = await axios.options(UploadURL, options);
+        return response.data;
+    } catch (e) {
+        console.log(e);
+        return {};
+    }
+};
+
+const UploadFile = async (UploadURL, Image) => {
+    try {
+        let options = currennt_porxy;
+        options.headers = { 
+            'User-Agent': current_useragent,
+            Accept: '*/*',
+            'Accept-Language': ' en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            Referer: 'https://www.twitch.tv/',
+            Origin: 'https://www.twitch.tv',
+            DNT: 1,
+            Connection: 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site'
+        };
+       
+        let response = await axios.put(UploadURL, Image, options);
+        console.log(response);
+        return response.data;
+    } catch (e) {
+        console.log(e);
+        return {};
+    }
+};
+
 async function StartCreate(uname) {
     currennt_porxy = getProxy(config.proxyType);
     current_useragent = getUserAgent();
@@ -411,6 +548,38 @@ async function StartCreate(uname) {
     console.log('\x1b[37m 9.2) Getting public integrity token ...');
     let PublicInter2 = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token);
     await FollowGames(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter2['token']);
+
+    
+    // console.log('\x1b[37m 9.3) Getting a Avatar ...');
+    // let avatar = await GetAvatar(uname);
+    // if(avatar != false)
+    // {
+    //     console.log('\x1b[37m 9.4) Getting Kasada code ...');
+    //     let kasada4 = await KasdaResolver();
+    //     if(kasada4 != false)
+    //     {
+    //         console.log('\x1b[37m 9.5) Getting public integrity token ...');
+    //         let PublicInter3 = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token);
+    //         let UploadDATA = await RequestUpdateAvatar(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter2['token'], userID);
+            
+    //         const dataObj = UploadDATA.find(obj => obj.data.createProfileImageUploadURL);
+
+    //         if (dataObj) {
+    //             const createProfileImageUploadURL = dataObj.data.createProfileImageUploadURL;
+    //             let UploadingFileOptions = await UploadFileOptions(createProfileImageUploadURL.uploadURL);
+    //             let UploadingFile = await UploadFile(createProfileImageUploadURL.uploadURL, avatar);
+    //             let UpdateProfile = await RequestUpdateProfile(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter3['token'], uname);
+    //         } else {
+    //             console.log('\x1b[37m Unable find upload URL!');
+    //         }
+    //     } else {
+    //         console.log('\x1b[37m Unable to solve Kasada!');
+    //         console.log('\x1b[33m--------------------------------------\x1b[37m');
+    //     }
+    // } else {
+    //     console.log('\x1b[37m 9.4) Unable to download avatar!');
+    // }
+
     console.log('\x1b[33m--------------------------------------\x1b[37m');
     console.log('\x1b[33m Account is ready!\x1b[37m');
     console.log('\x1b[33m--------------------------------------\x1b[37m');
@@ -472,6 +641,7 @@ StartProgram = async () => {
     console.log('\x1b[33m---------------------------------------\x1b[37m');
     GettingUsername();
 }
+
 
 StartProgram();
 

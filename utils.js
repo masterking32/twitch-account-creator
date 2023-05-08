@@ -117,3 +117,11 @@ module.exports.getUserAgent = () => {
 };
 
 module.exports.convertCookieForRequestHeader = cookies => cookies.map(cookies => cookies.split(';')[0]).join(';');
+
+
+
+const avatar_lists = ["pixel-art", "thumbs", "pixel-art-neutral", "personas", "open-peeps", "notionists-neutral", "notionists", "miniavs", "micah", "lorelei-neutral", "lorelei", "fun-emoji", "croodles", "big-smile", "big-ears-neutral", "big-ears", "avataaars-neutral", "avataaars", "adventurer-neutral", "adventurer"];
+
+module.exports.GetAvatarURL = (name) => {
+    return 'https://api.dicebear.com/6.x/' + avatar_lists[Math.floor(Math.random() * avatar_lists.length)] + '/png?seed=' + name + '&size=300&backgroundColor=' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
+}
