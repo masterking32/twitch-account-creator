@@ -16,13 +16,10 @@
 
 💵 If you're a fan of our project and want to support us, consider donating crypto. Your support will help us improve and expand, providing even more value to our users. Thank you for your generosity! 💵  
 
-TRON (TRX - COIN):
+TRON (TRX/USDT/...)
 `TLApdY8APWkFHHoxebxGY8JhMeChiETqFH`
 
-Tether (USDT - TRC20):
-`TLApdY8APWkFHHoxebxGY8JhMeChiETqFH`
-
-BNB (COIN):
+BNB (BEP2):
 `bnb1vlyu4rllf752n02m4hgvce744ud90mwkn9rvvq`
 
 <hr>
