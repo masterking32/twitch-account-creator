@@ -13,6 +13,19 @@
 **⭐ If you liked the project, feel free to give it a shining star. ⭐**
 
 <hr>
+
+💵 If you're a fan of our project and want to support us, consider donating crypto. Your support will help us improve and expand, providing even more value to our users. Thank you for your generosity! 💵  
+
+TRON (TRX - COIN):
+`TLApdY8APWkFHHoxebxGY8JhMeChiETqFH`
+
+Tether (USDT - TRC20):
+`TLApdY8APWkFHHoxebxGY8JhMeChiETqFH`
+
+BNB (COIN):
+`bnb1vlyu4rllf752n02m4hgvce744ud90mwkn9rvvq`
+
+<hr>
 <p align="center">
   <a href="https://discord.gg/ydDk9xe" target="_blank">
     <img align="center" src="https://dcbadge.vercel.app/api/server/ydDk9xe" alt="MasterkinG32's Discord Server" />
