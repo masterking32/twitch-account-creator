@@ -19,7 +19,7 @@ let currennt_porxy = {};
 let current_useragent = '';
 let KasdaResponse = {};
 
-const KasdaResolver = async () => {
+const KasdaResolver = async (retry = 0, maxRetries = 5) => {
     try {
 
         let response = await axios.post('https://api.capsolver.com/kasada/invoke', {
@@ -45,11 +45,16 @@ const KasdaResolver = async () => {
         }
         return KasdaResponse;
     } catch (e) {
-        // console.log(e);
+        console.log(e);
     }
 
-    console.log("Unable to get Kasada, Try again ...")
-    return await KasdaResolver();
+    console.log("Unable to get Kasada, Try again ...");
+    if (retryCount < maxRetries) {
+        return await KasdaResolver(retry + 1, maxRetries);
+    } else {
+        console.log("Kasada resolution failed after maximum retries");
+        return false;
+    }
 };
 
 const integrityGetToken = async (kpsdkcd, kpsdkct, cookies) => {
@@ -441,148 +446,153 @@ const UploadFile = async (UploadURL, Image) => {
 };
 
 async function StartCreate(uname) {
-    currennt_porxy = getProxy(config.proxyType);
-    current_useragent = getUserAgent();
-    const email = await getEmail(uname);
-    let register_post_data = generateRandomRegisterData(uname, email);
-    console.log('\x1b[32m--------------------------------------\x1b[37m');
-    console.log('\x1b[32m------------ Account Info ------------\x1b[37m');
-    console.log('\x1b[32m--------------------------------------\x1b[37m');
-    console.log("\x1b[32mUsername: " + register_post_data.username + "\x1b[37m");
-    console.log("\x1b[32mPassword: " + register_post_data.password + "\x1b[37m");
-    console.log("\x1b[32memail: " + email);
-    console.log("\x1b[32mBirthday: " + register_post_data.birthday.year + "/" + register_post_data.birthday.month + "/" + register_post_data.birthday.day) + "\x1b[37m";
-    console.log('\x1b[33m--------------------------------------\x1b[37m');
-    console.log('\x1b[33m------- Start creating account -------\x1b[37m');
-    console.log('\x1b[33m--------------------------------------\x1b[37m');
-    console.log('\x1b[37m 1) Getting Twitch cookies!');
-    let cookies = await GetTwitchCookies();
-    if(cookies === false) {
-        console.log('\x1b[37m Unable to get twitch cookies!');
+    try{
+        uname = uname.toLowerCase();
+        currennt_porxy = getProxy(config.proxyType);
+        current_useragent = getUserAgent();
+        const email = await getEmail(uname);
+        let register_post_data = generateRandomRegisterData(uname, email);
+        console.log('\x1b[32m--------------------------------------\x1b[37m');
+        console.log('\x1b[32m------------ Account Info ------------\x1b[37m');
+        console.log('\x1b[32m--------------------------------------\x1b[37m');
+        console.log("\x1b[32mUsername: " + register_post_data.username + "\x1b[37m");
+        console.log("\x1b[32mPassword: " + register_post_data.password + "\x1b[37m");
+        console.log("\x1b[32memail: " + email);
+        console.log("\x1b[32mBirthday: " + register_post_data.birthday.year + "/" + register_post_data.birthday.month + "/" + register_post_data.birthday.day) + "\x1b[37m";
         console.log('\x1b[33m--------------------------------------\x1b[37m');
-        return;
-    }
-    console.log('\x1b[37m 2) Getting Kasada code ...');
-    let kasada = await KasdaResolver();
-    if(kasada == false)
-    {
-        console.log('\x1b[37m Unable to solve Kasada!');
+        console.log('\x1b[33m------- Start creating account -------\x1b[37m');
         console.log('\x1b[33m--------------------------------------\x1b[37m');
-        return;
-    }
-    console.log('\x1b[37m 3) Getting local integrity token ...');
-    await IntegrityOption();
-    let integrityData = await integrityGetToken(KasdaResponse.kpsdkcd, KasdaResponse.kpsdkct, cookies);
-    if(integrityData['token'] == false)
-    {
-        console.log('\x1b[37m Unable to get register token!');
-        console.log('\x1b[33m--------------------------------------\x1b[37m');
-        return;
-    }
-    
-    console.log('\x1b[37m 4) Creating account ...');
-    register_post_data.integrity_token = integrityData['token'];
-    let protected_register = await RegisterFinal(integrityData['cookies'], register_post_data);
-    if("error" in protected_register)
-    {
-        console.log('\x1b[31m ' + protected_register.error);
-        console.log('\x1b[33m--------------------------------------\x1b[37m');
-        return;
-    }
-
-    if(!("access_token" in protected_register && "userID" in protected_register)){
+        console.log('\x1b[37m 1) Getting Twitch cookies!');
+        let cookies = await GetTwitchCookies();
+        if(cookies === false) {
+            console.log('\x1b[37m Unable to get twitch cookies!');
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
+        }
+        console.log('\x1b[37m 2) Getting Kasada code ...');
+        let kasada = await KasdaResolver();
+        if(kasada == false)
+        {
+            console.log('\x1b[37m Unable to solve Kasada!');
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
+        }
+        console.log('\x1b[37m 3) Getting local integrity token ...');
+        await IntegrityOption();
+        let integrityData = await integrityGetToken(KasdaResponse.kpsdkcd, KasdaResponse.kpsdkct, cookies);
+        if(integrityData['token'] == false)
+        {
+            console.log('\x1b[37m Unable to get register token!');
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
+        }
         
-        console.log('\x1b[31m Something is wrong!!!');
-        console.log('\x1b[33m--------------------------------------\x1b[37m');
-    }
+        console.log('\x1b[37m 4) Creating account ...');
+        register_post_data.integrity_token = integrityData['token'];
+        let protected_register = await RegisterFinal(integrityData['cookies'], register_post_data);
+        if("error" in protected_register)
+        {
+            console.log('\x1b[31m ' + protected_register.error);
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
+        }
 
-    let userID = protected_register.userID;
-    let access_token = protected_register.access_token;
-    console.log("\x1b[32mAccount Created!\x1b[37m");
-    console.log('\x1b[32mUserID: ' + userID + ' AccessToken: ' + access_token + "\x1b[37m");
-
-    console.log('\x1b[37m 5) Waiting for verification email ...');
-    const verifyCode = await waitFirstMail(register_post_data.username);
-    console.log('Verify Code:' + verifyCode);
-    
-    console.log('\x1b[37m 6) Getting Kasada code ...');
-    let kasada2 = await KasdaResolver();
-    if(kasada2 == false)
-    {
-        console.log('\x1b[37m Unable to solve Kasada!');
-        console.log('\x1b[33m--------------------------------------\x1b[37m');
-        return;
-    }
-
-    let ClientID = TwitchClinetID;
-    let ClientSessionId = MakeRandomID(16).toLowerCase();
-    let XDeviceId = cookies['unique_id'];
-    let ClientVersion = '3040e141-5964-4d72-b67d-e73c1cf355b5';
-    let ClientRequestID = MakeRandomID(32);
-    
-    console.log('\x1b[37m 7) Getting public integrity token ...');
-    let PublicInter = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token)
-
-    console.log('\x1b[37m 8) Try to verify the account ...');
-    let verifyEmailResponse = await verifyEmail(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter['token'], verifyCode, userID, email) 
-    
-    console.log('\x1b[33m--------------------------------------\x1b[37m');
-    if(verifyEmailResponse[0].data.validateVerificationCode.request.status == 'VERIFIED')
-    {
-        await saveResult(register_post_data.username, register_post_data.password, register_post_data.email, userID, access_token);
-        console.log("\x1b[32mAccount verified and saved!\x1b[37m");
-    }
-    console.log('\x1b[33m--------------------------------------\x1b[37m');
-    console.log('\x1b[33m 9) Following Games...');
-    ClientRequestID = MakeRandomID(32);
-
-    console.log('\x1b[37m 9.1) Getting Kasada code ...');
-    let kasada3 = await KasdaResolver();
-    if(kasada3 == false)
-    {
-        console.log('\x1b[37m Unable to solve Kasada!');
-        console.log('\x1b[33m--------------------------------------\x1b[37m');
-        return;
-    }
-
-    console.log('\x1b[37m 9.2) Getting public integrity token ...');
-    let PublicInter2 = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token);
-    await FollowGames(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter2['token']);
-
-    
-    // console.log('\x1b[37m 9.3) Getting a Avatar ...');
-    // let avatar = await GetAvatar(uname);
-    // if(avatar != false)
-    // {
-    //     console.log('\x1b[37m 9.4) Getting Kasada code ...');
-    //     let kasada4 = await KasdaResolver();
-    //     if(kasada4 != false)
-    //     {
-    //         console.log('\x1b[37m 9.5) Getting public integrity token ...');
-    //         let PublicInter3 = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token);
-    //         let UploadDATA = await RequestUpdateAvatar(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter2['token'], userID);
+        if(!("access_token" in protected_register && "userID" in protected_register)){
             
-    //         const dataObj = UploadDATA.find(obj => obj.data.createProfileImageUploadURL);
+            console.log('\x1b[31m Something is wrong!!!');
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+        }
 
-    //         if (dataObj) {
-    //             const createProfileImageUploadURL = dataObj.data.createProfileImageUploadURL;
-    //             let UploadingFileOptions = await UploadFileOptions(createProfileImageUploadURL.uploadURL);
-    //             let UploadingFile = await UploadFile(createProfileImageUploadURL.uploadURL, avatar);
-    //             let UpdateProfile = await RequestUpdateProfile(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter3['token'], uname);
-    //         } else {
-    //             console.log('\x1b[37m Unable find upload URL!');
-    //         }
-    //     } else {
-    //         console.log('\x1b[37m Unable to solve Kasada!');
-    //         console.log('\x1b[33m--------------------------------------\x1b[37m');
-    //     }
-    // } else {
-    //     console.log('\x1b[37m 9.4) Unable to download avatar!');
-    // }
+        let userID = protected_register.userID;
+        let access_token = protected_register.access_token;
+        console.log("\x1b[32mAccount Created!\x1b[37m");
+        console.log('\x1b[32mUserID: ' + userID + ' AccessToken: ' + access_token + "\x1b[37m");
 
-    console.log('\x1b[33m--------------------------------------\x1b[37m');
-    console.log('\x1b[33m Account is ready!\x1b[37m');
-    console.log('\x1b[33m--------------------------------------\x1b[37m');
+        console.log('\x1b[37m 5) Waiting for verification email ...');
+        const verifyCode = await waitFirstMail(register_post_data.username);
+        console.log('Verify Code:' + verifyCode);
+        
+        console.log('\x1b[37m 6) Getting Kasada code ...');
+        let kasada2 = await KasdaResolver();
+        if(kasada2 == false)
+        {
+            console.log('\x1b[37m Unable to solve Kasada!');
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
+        }
+
+        let ClientID = TwitchClinetID;
+        let ClientSessionId = MakeRandomID(16).toLowerCase();
+        let XDeviceId = cookies['unique_id'];
+        let ClientVersion = '3040e141-5964-4d72-b67d-e73c1cf355b5';
+        let ClientRequestID = MakeRandomID(32);
+        
+        console.log('\x1b[37m 7) Getting public integrity token ...');
+        let PublicInter = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token)
+
+        console.log('\x1b[37m 8) Try to verify the account ...');
+        let verifyEmailResponse = await verifyEmail(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter['token'], verifyCode, userID, email) 
+        
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        if(verifyEmailResponse[0].data.validateVerificationCode.request.status == 'VERIFIED')
+        {
+            await saveResult(register_post_data.username, register_post_data.password, register_post_data.email, userID, access_token);
+            console.log("\x1b[32mAccount verified and saved!\x1b[37m");
+        }
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        console.log('\x1b[33m 9) Following Games...');
+        ClientRequestID = MakeRandomID(32);
+
+        console.log('\x1b[37m 9.1) Getting Kasada code ...');
+        let kasada3 = await KasdaResolver();
+        if(kasada3 == false)
+        {
+            console.log('\x1b[37m Unable to solve Kasada!');
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
+        }
+
+        console.log('\x1b[37m 9.2) Getting public integrity token ...');
+        let PublicInter2 = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token);
+        await FollowGames(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter2['token']);
+
+        
+        // console.log('\x1b[37m 9.3) Getting a Avatar ...');
+        // let avatar = await GetAvatar(uname);
+        // if(avatar != false)
+        // {
+        //     console.log('\x1b[37m 9.4) Getting Kasada code ...');
+        //     let kasada4 = await KasdaResolver();
+        //     if(kasada4 != false)
+        //     {
+        //         console.log('\x1b[37m 9.5) Getting public integrity token ...');
+        //         let PublicInter3 = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token);
+        //         let UploadDATA = await RequestUpdateAvatar(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter2['token'], userID);
+                
+        //         const dataObj = UploadDATA.find(obj => obj.data.createProfileImageUploadURL);
+
+        //         if (dataObj) {
+        //             const createProfileImageUploadURL = dataObj.data.createProfileImageUploadURL;
+        //             let UploadingFileOptions = await UploadFileOptions(createProfileImageUploadURL.uploadURL);
+        //             let UploadingFile = await UploadFile(createProfileImageUploadURL.uploadURL, avatar);
+        //             let UpdateProfile = await RequestUpdateProfile(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter3['token'], uname);
+        //         } else {
+        //             console.log('\x1b[37m Unable find upload URL!');
+        //         }
+        //     } else {
+        //         console.log('\x1b[37m Unable to solve Kasada!');
+        //         console.log('\x1b[33m--------------------------------------\x1b[37m');
+        //     }
+        // } else {
+        //     console.log('\x1b[37m 9.4) Unable to download avatar!');
+        // }
+
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+        console.log('\x1b[33m Account is ready!\x1b[37m');
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+    } catch(e){
+        console.log(e);
+    }
 }
 
 async function CreateNewAccount(uname)
