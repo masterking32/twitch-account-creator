@@ -49,7 +49,7 @@ const KasdaResolver = async (retry = 0, maxRetries = 5) => {
     }
 
     console.log("Unable to get Kasada, Try again ...");
-    if (retryCount < maxRetries) {
+    if (retry < maxRetries) {
         return await KasdaResolver(retry + 1, maxRetries);
     } else {
         console.log("Kasada resolution failed after maximum retries");
