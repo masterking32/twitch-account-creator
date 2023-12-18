@@ -4,6 +4,8 @@
 
 # A NodeJS bot to create Twitch accounts and follow other Twitch accounts.
 
+❌❌❌ This repo is deprecated for now. ❌❌❌
+
 # TESTED AND WORKS (02/FEB/2023)
 
 ✔️ This project will create new accounts and verify the accounts using the email address. ✔️
