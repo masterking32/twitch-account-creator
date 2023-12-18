@@ -4,7 +4,7 @@
 
 # A NodeJS bot to create Twitch accounts and follow other Twitch accounts.
 
-❌❌❌ This repo is deprecated for now. ❌❌❌
+# ❌❌❌ This repo is deprecated for now. ❌❌❌
 
 # TESTED AND WORKS (02/FEB/2023)
 
