@@ -6,8 +6,6 @@
 
 # ❌❌❌ This repo is deprecated for now. ❌❌❌
 
-# TESTED AND WORKS (02/FEB/2023)
-
 ✔️ This project will create new accounts and verify the accounts using the email address. ✔️
 
 *❌ Do not abuse this project, this project is made for testing only, and you cannot use it according to Twitch rules. ❌*
@@ -42,6 +40,8 @@ BNB (BEP2):
 **🟢 [2) Create an account and buy some `http` proxies and put proxies in `proxy.txt` file.](https://metaproxies.net/?r=tRQDh1dOIE)** (Required Balance [Proxy Form must be like ip:port:username:password])
 
 ## 💻 Installation
+
+# ❌❌❌ This repo is deprecated for now. ❌❌❌
 
 ### 🟣 Setup:
 - Clone the repo and do `npm install`
