@@ -4,8 +4,6 @@
 
 # A NodeJS bot to create Twitch accounts and follow other Twitch accounts.
 
-# ❌❌❌ This repo is deprecated for now. ❌❌❌
-
 ✔️ This project will create new accounts and verify the accounts using the email address. ✔️
 
 *❌ Do not abuse this project, this project is made for testing only, and you cannot use it according to Twitch rules. ❌*
@@ -33,15 +31,13 @@ BNB (BEP2):
 
 ✅ Get an API key from:
 
-**🟢 [1) Create an account on this website, Add some funds, and then add `Pay-Per-Usage solving API Key` to your config file.](https://dashboard.capsolver.com/passport/register?inviteCode=Lpullbhszlum)** (Required Balance)
+**🟢 [1) Create an account on this website, Add some funds, and then add `Pay-Per-Usage solving API Key` to your config file.](https://salamoonder.com)** (Required Balance)
 
 ✅ Get some HTTP Proxies:
 
 **🟢 [2) Create an account and buy some `http` proxies and put proxies in `proxy.txt` file.](https://metaproxies.net/?r=tRQDh1dOIE)** (Required Balance [Proxy Form must be like ip:port:username:password])
 
 ## 💻 Installation
-
-# ❌❌❌ This repo is deprecated for now. ❌❌❌
 
 ### 🟣 Setup:
 - Clone the repo and do `npm install`
