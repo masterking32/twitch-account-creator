@@ -21,27 +21,43 @@ let KasdaResponse = {};
 
 const KasdaResolver = async (retry = 0, maxRetries = 5) => {
     try {
-
-        let response = await axios.post('https://api.capsolver.com/kasada/invoke', {
-            "clientKey": config.CapSolverKey,
-            "appId": 'B278567A-C94E-457E-B419-F1D6A5D1AA6D',
+        let response = await axios.post('https://salamoonder.com/api/createTask', {
+            "api_key": config.CapSolverKey,
             "task": {
-                "type": "AntiKasadaTask",
-                "pageURL": "https://gql.twitch.tv/", //Required
-                "proxy": currennt_porxy.proxy.href, //Required
-                "cd": true, //Optional
-                "onlyCD": false, //Optional
-                "userAgent": current_useragent //Optional
+                "type": "KasadaCaptchaSolver",
+                "pjs": "https://k.twitchcdn.net/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/p.js", 
+                "cdOnly": "false"
             }
-        }, {headers: { 'content-type': 'text/json' }});
-        if(response.data.success)
+        }, {headers: { 'content-type': 'application/json' }});
+
+        const taskID = response.data.taskId;
+
+        if(response.data.taskId)
         {
-            current_useragent = response.data.solution['user-agent'];
-            KasdaResponse = {};
-            KasdaResponse.original = response.data.solution;
-            KasdaResponse.useragent = response.data.solution['user-agent'];
-            KasdaResponse.kpsdkcd = response.data.solution['x-kpsdk-cd'];
-            KasdaResponse.kpsdkct = response.data.solution['x-kpsdk-ct'];
+            try {
+                while (true) {
+                    const getTaskResultResponse = await axios.post("https://salamoonder.com/api/getTaskResult", { "taskId": taskID });
+                    const status = getTaskResultResponse.data.status;
+        
+                    if (status === "PENDING") {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second
+                    } else if (status === "ready") {
+                        KasdaResponse = {};
+                        KasdaResponse.original = getTaskResultResponse.data.solution;
+                        current_useragent = getTaskResultResponse.data.solution['user-agent'];
+                        KasdaResponse.useragent = getTaskResultResponse.data.solution['user-agent'];
+                        KasdaResponse.kpsdkcd = getTaskResultResponse.data.solution['x-kpsdk-cd'];
+                        KasdaResponse.kpsdkct = getTaskResultResponse.data.solution['x-kpsdk-ct'];
+                        return KasdaResponse;
+                    } else {
+                        return null;
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to get task result:", error.response ? error.response.data : error.message);
+                return null;
+            }
+            
         }
         return KasdaResponse;
     } catch (e) {
