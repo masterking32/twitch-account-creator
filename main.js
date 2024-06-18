@@ -36,7 +36,7 @@ const KasdaResolver = async (retry = 0, maxRetries = 5) => {
         {
             try {
                 while (true) {
-                    const getTaskResultResponse = await axios.post("https://salamoonder.com/api/getTaskResult", { "taskId": taskID });
+                    const getTaskResultResponse = await axios.post("https://salamoonder.com/api/getTaskResult", { "api_key": config.CapSolverKey, "taskId": taskID });
                     const status = getTaskResultResponse.data.status;
         
                     if (status === "PENDING") {
