@@ -1,5 +1,5 @@
 const axios = require('axios');
-const mail_domain = 'ezztt.com';
+const mail_domain = 'rteet.com';
 
 module.exports.getEmail = async login => {
     const email = `${login}@${mail_domain}`;
