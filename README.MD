@@ -35,7 +35,7 @@ BNB (BEP2):
 
 ✅ Get some HTTP Proxies:
 
-**🟢 [2) Create an account and buy some `http` proxies and put proxies in `proxy.txt` file.](https://metaproxies.net/?r=tRQDh1dOIE)** (Required Balance [Proxy Form must be like ip:port:username:password])
+**🟢 [2) Create an account and buy some `http` proxies and put proxies in `proxy.txt` file.](https://www.webshare.io/?referral_code=2ghmowzxmc26)** (Required Balance [Proxy Form must be like ip:port:username:password])
 
 ## 💻 Installation
 
