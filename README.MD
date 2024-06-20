@@ -14,11 +14,17 @@
 
 💵 If you're a fan of our project and want to support us, consider donating crypto. Your support will help us improve and expand, providing even more value to our users. Thank you for your generosity! 💵  
 
-TRON (TRX/USDT/...)
+TON:
+`UQDdtN_p3WwuGMVXtMasatomVNPJF-Ljscy0srozJZBl15eL`
+
+EVM-compatible blockchains:
+`0x517f07305D6ED781A089322B6cD93d1461bF8652`
+
+TRC20 chain:
 `TLApdY8APWkFHHoxebxGY8JhMeChiETqFH`
 
-BNB (BEP2):
-`bnb1vlyu4rllf752n02m4hgvce744ud90mwkn9rvvq`
+RONIN Chain:
+`masterking.ron`
 
 <hr>
 <p align="center">
