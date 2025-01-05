@@ -504,25 +504,18 @@ async function StartCreate(uname) {
         }
         
         console.log('\x1b[37m 4) Creating account ...');
-        register_post_data.integrity_token = integrityData['token'];
+		register_post_data.integrity_token = integrityData['token'];
+        register_post_data.is_password_guide = 'nist';
+
         let protected_register = await RegisterFinal(integrityData['cookies'], register_post_data);
-        if("error" in protected_register)
-        {
-            console.log('\x1b[31m ' + protected_register.error);
-            console.log('\x1b[33m--------------------------------------\x1b[37m');
-            return;
+        if ("error" in protected_register) {
+            if (protected_register.error_code !== 2026) {
+                // If error = 2026 then it's all right to proceed as this is the default response from TwitchTV
+                console.log('\x1b[31m ' + protected_register.error);
+                console.log('\x1b[33m--------------------------------------\x1b[37m');
+                return;
+            }
         }
-
-        if(!("access_token" in protected_register && "userID" in protected_register)){
-            
-            console.log('\x1b[31m Something is wrong!!!');
-            console.log('\x1b[33m--------------------------------------\x1b[37m');
-        }
-
-        let userID = protected_register.userID;
-        let access_token = protected_register.access_token;
-        console.log("\x1b[32mAccount Created!\x1b[37m");
-        console.log('\x1b[32mUserID: ' + userID + ' AccessToken: ' + access_token + "\x1b[37m");
 
         console.log('\x1b[37m 5) Waiting for verification email ...');
         const verifyCode = await waitFirstMail(register_post_data.username);
@@ -543,18 +536,42 @@ async function StartCreate(uname) {
         let ClientVersion = '3040e141-5964-4d72-b67d-e73c1cf355b5';
         let ClientRequestID = MakeRandomID(32);
         
-        console.log('\x1b[37m 7) Getting public integrity token ...');
-        let PublicInter = await PublicIntegrityGetToken(ClientID, XDeviceId, ClientRequestID, ClientSessionId, ClientVersion, KasdaResponse.kpsdkct, KasdaResponse.kpsdkcd, access_token)
-
-        console.log('\x1b[37m 8) Try to verify the account ...');
-        let verifyEmailResponse = await verifyEmail(ClientID, XDeviceId, ClientVersion, ClientSessionId, access_token, PublicInter['token'], verifyCode, userID, email) 
-        
-        console.log('\x1b[33m--------------------------------------\x1b[37m');
-        if(verifyEmailResponse[0].data.validateVerificationCode.request.status == 'VERIFIED')
-        {
-            await saveResult(register_post_data.username, register_post_data.password, register_post_data.email, userID, access_token);
-            console.log("\x1b[32mAccount verified and saved!\x1b[37m");
+        console.log('\x1b[37m 7) Getting local integrity token ...');
+        await IntegrityOption();
+        integrityData = await integrityGetToken(KasdaResponse.kpsdkcd, KasdaResponse.kpsdkct, cookies);
+        if (integrityData['token'] == false) {
+            console.log('\x1b[37m Unable to get register token!');
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
         }
+
+
+		console.log('\x1b[37m 8) Verify account email ...');
+        register_post_data.integrity_token = integrityData['token'];
+        register_post_data.email_verification_code = verifyCode;
+
+		// Call register final again for Email Confirmation
+		protected_register = await RegisterFinal(integrityData['cookies'], register_post_data);
+		if ("error" in protected_register) {
+            console.log('\x1b[31m ' + protected_register.error);
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
+        }
+
+        if (!('access_token' in protected_register && 'userID' in protected_register)) {
+            console.log('\x1b[31m Something is wrong!!!');
+            console.log('\x1b[33m--------------------------------------\x1b[37m');
+            return;
+        }
+
+		let userID = protected_register.userID;
+        let access_token = protected_register.access_token;
+        console.log('\x1b[32mAccount Created!\x1b[37m');
+        console.log('\x1b[32mUserID: ' + userID + ' AccessToken: ' + access_token + '\x1b[37m');
+        console.log('\x1b[33m--------------------------------------\x1b[37m');
+		
+        await saveResult(register_post_data.username, register_post_data.password, register_post_data.email, userID, access_token);
+        console.log("\x1b[32mAccount verified and saved!\x1b[37m");
         console.log('\x1b[33m--------------------------------------\x1b[37m');
         console.log('\x1b[33m 9) Following Games...');
         ClientRequestID = MakeRandomID(32);
